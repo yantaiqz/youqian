@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 # -------------------------- 0. 全局配置与样式 --------------------------
 st.set_page_config(
-    page_title="WealthRank Global",
+    page_title="WealthRank 财富排行榜",
     page_icon="🌍",
     layout="centered",
     initial_sidebar_state="collapsed"
