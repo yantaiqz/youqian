@@ -205,16 +205,6 @@ def main():
     
     text = TRANSLATIONS[selected_lang]
     
-    # -------- 每日访问统计 (即使报错也不崩溃) --------
-    daily_visits = update_daily_visits()
-    visit_text = f"Daily Visits: {daily_visits}" if selected_lang == "English" else f"今日访问: {daily_visits}"
-    
-    st.markdown(f"""
-    <div style="text-align: center; color: #64748b; font-size: 0.7rem; margin-top: 10px; padding-bottom: 20px;">
-        {visit_text}
-    </div>
-    """, unsafe_allow_html=True)
-    
     with col_header:
         st.markdown(f"# {text['title']}")
         st.markdown(f"<p style='color:#64748b; margin-top:-15px;'>{text['subtitle']}</p>", unsafe_allow_html=True)
@@ -253,6 +243,18 @@ def main():
         {text['disclaimer']}
     </div>
     """, unsafe_allow_html=True)
+
+
+    # -------- 每日访问统计 (即使报错也不崩溃) --------
+    daily_visits = update_daily_visits()
+    visit_text = f"Daily Visits: {daily_visits}" if selected_lang == "English" else f"今日访问: {daily_visits}"
+    
+    st.markdown(f"""
+    <div style="text-align: center; color: #64748b; font-size: 0.7rem; margin-top: 10px; padding-bottom: 20px;">
+        {visit_text}
+    </div>
+    """, unsafe_allow_html=True)
+    
 
 # -------------------------- 5. 必须包含此入口！ --------------------------
 if __name__ == "__main__":
