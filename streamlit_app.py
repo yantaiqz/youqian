@@ -8,7 +8,7 @@ import os
 
 # -------------------------- 0. 全局配置 (必须在第一行) --------------------------
 st.set_page_config(
-    page_title="WealthRank Global",
+    page_title="WealthRank 财富排行榜",
     page_icon="🌍",
     layout="centered",
     initial_sidebar_state="collapsed"
@@ -61,9 +61,9 @@ TRANSLATIONS = {
         "disclaimer": "Based on Log-Normal Distribution Model • Not Financial Advice"
     },
     "中文": {
-        "title": "全球财富段位",
-        "subtitle": "全球财富分布实时估算工具",
-        "location": "居住地区",
+        "title": "财富金字塔段位",
+        "subtitle": "个人财富实时排名",
+        "location": "居住国家",
         "income": "税前年收入",
         "wealth": "家庭净资产",
         "btn_calc": "查看我的排名",
