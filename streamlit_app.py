@@ -21,31 +21,29 @@ COUNTRY_DATA = {
 
 # -------------------------- 工具函数 --------------------------
 def get_log_normal_percentile(value, median, shape_parameter):
-    """计算对数正态分布的累积分布函数（CDF），对应百分位（修复逻辑颠倒问题）"""
+    """计算对数正态分布的累积分布函数（CDF）"""
     if value <= 1:
-        return 0.0001  # 极小值返回最低百分位
-    if value >= median * 1000:  # 极大值返回最高百分位（避免溢出）
-        return 0.9999
+        return 0.0001
     
     try:
+        # 参数设定
         mu = math.log(median)
         sigma = shape_parameter
-        z = (math.log(value) - mu) / sigma  # 标准化：值越大，z越大
         
-        # 修复核心：误差函数逻辑颠倒 → 正确计算正态分布CDF
-        t = 1 / (1 + 0.3275911 * math.abs(z))  # 移除多余的 sqrt(2)，修正标准化逻辑
-        a1, a2, a3, a4, a5 = 0.254829592, -0.284496736, 1.421413741, -1.453152027, 1.061405429
-        # 正确的误差函数计算（原代码符号反了）
-        error = (((a5 * t + a4) * t + a3) * t + a2) * t + a1
-        if z < 0:
-            error = -error
+        # 计算对数值
+        log_value = math.log(value)
         
-        # 正确的CDF公式：Φ(z) = 0.5 * (1 + erf(z/√2))
-        percentile = 0.5 * (1 + error)
+        # 标准化：z = (ln(x) - mu) / sigma
+        z = (log_value - mu) / sigma
+        
+        # 使用 Python 标准库 math.erf 计算 CDF
+        # LogNormal CDF = 0.5 + 0.5 * erf( (ln(x) - mu) / (sigma * sqrt(2)) )
+        percentile = 0.5 * (1 + math.erf(z / math.sqrt(2)))
         
         # 限制极端值
         return min(max(percentile, 0.0001), 0.9999)
     except Exception as e:
+        # 如果出错（如数值过大导致溢出），返回保守值
         return 0.0001
 
 def format_number(num):
@@ -62,28 +60,50 @@ def format_big_number(num):
 
 def plot_distribution_chart(percentile, label, color):
     """绘制分布曲线图"""
-    x = np.linspace(-3, 3, 60)
+    # 生成标准正态分布曲线数据
+    x = np.linspace(-3, 3, 100)
     y = np.exp(-0.5 * x**2)
-    chart_x = (x + 3) / 6  # 映射到0-1区间
+    
+    # 映射 x 轴到 0-1 (为了可视化百分位)
+    # 使用累积分布函数(CDF)作为 x 轴映射可能更直观，但这里保持你的视觉风格
+    # 这里我们将 x 从 -3~3 线性映射到图表上的 0~1
+    chart_x = (x + 3) / 6 
     chart_y = y / y.max()
     
+    # 根据输入的百分位计算对应的 Z-Score
+    # 使用 scipy.special.ndtri 会更准，但为了减少依赖，这里用简单的线性反推近似
+    # 或者如果不追求精确对应曲线形状，直接用 percentile 作为 x 位置
     marker_x = percentile
-    z_score = (marker_x - 0.5) * 6  # 从百分位反推z值（0.5对应z=0）
-    marker_y = np.exp(-0.5 * z_score**2) / y.max()
+    
+    # 为了让点落在曲线上，我们需要反推该百分位对应的钟形曲线高度
+    # 简单的近似：假设 percentile 0.5 对应 x=0 (峰值)
+    # 这是一个视觉上的近似处理
+    simulated_z = (percentile - 0.5) * 6 # 映射回 -3 到 3
+    marker_y = np.exp(-0.5 * simulated_z**2) 
     
     fig, ax = plt.subplots(figsize=(8, 3))
+    
+    # 绘制曲线和填充
     ax.plot(chart_x, chart_y, color=color, linewidth=2)
     ax.fill_between(chart_x, chart_y, alpha=0.3, color=color)
     
+    # 绘制标示线和点
     ax.axvline(x=marker_x, ymin=0, ymax=marker_y, color="#64748b", linestyle="--", linewidth=1)
-    ax.scatter(marker_x, marker_y, color=color, s=60, edgecolor="white", linewidth=2)
-    ax.text(marker_x, marker_y + 0.05, "你在这里", ha="center", va="bottom", fontsize=10, fontweight="bold")
+    ax.scatter(marker_x, marker_y, color=color, s=80, edgecolor="white", linewidth=2, zorder=5)
+    
+    # 动态调整标签位置防止溢出
+    text_y = marker_y + 0.1
+    ax.text(marker_x, text_y if text_y < 1.1 else marker_y - 0.2, "你在这里", 
+            ha="center", va="bottom" if text_y < 1.1 else "top", 
+            fontsize=10, fontweight="bold", color="#334155")
     
     ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1.2)
+    ax.set_ylim(0, 1.25)
     ax.set_xticks([0, 0.5, 1])
     ax.set_xticklabels([f"低{label}", "中位数", f"高{label}"])
     ax.set_yticks([])
+    
+    # 移除边框
     for spine in ax.spines.values():
         spine.set_visible(False)
     
@@ -92,8 +112,9 @@ def plot_distribution_chart(percentile, label, color):
 # -------------------------- 核心组件 --------------------------
 def result_card(title, value, percentile, population, icon, color, country_data):
     """结果卡片组件"""
-    better_than = f"{percentile * 100:.1f}"
-    rank = math.floor(population * (1 - percentile))  # 百分位越高，排名越靠前（数值越小）
+    better_than = f"{percentile * 100:.2f}"
+    # 排名计算：总人口 * (1 - 百分位)，至少为第 1 名
+    rank = max(1, math.floor(population * (1 - percentile)))
     currency = country_data["currency"]
     
     with st.container(border=True):
@@ -101,15 +122,15 @@ def result_card(title, value, percentile, population, icon, color, country_data)
         with col1:
             st.markdown(f"### {icon} {title}")
             st.markdown(f"**{currency}{format_number(value)}**")
-            st.markdown(f"超过全国人口：{better_than}%")
-            st.progress(float(better_than) / 100, text=f"Top {(100 - float(better_than)):.1f}%")
+            st.markdown(f"超过全国人口：**{better_than}%**")
+            st.progress(min(percentile, 1.0), text=f"Top {(100 - float(better_than)):.2f}%")
             
             st.markdown(f"""
-            <div style="background-color: {color}20; padding: 10px; border-radius: 8px; margin-top: 10px;">
-                <strong>预估绝对排名：</strong> 第 {format_big_number(rank)} 名
+            <div style="background-color: {color}15; padding: 12px; border-radius: 8px; margin-top: 10px;">
+                <strong>📊 预估绝对排名：</strong> 第 {format_big_number(rank)} 名
             </div>
             """, unsafe_allow_html=True)
-            st.markdown(f"<small style='color: #64748b;'>* 基于 {country_data['name']} 总人口 {format_big_number(population)} 估算</small>", unsafe_allow_html=True)
+            st.markdown(f"<small style='color: #94a3b8;'>* 基于 {country_data['name']} 总人口 {format_big_number(population)} 模型估算</small>", unsafe_allow_html=True)
         
         with col2:
             plot_distribution_chart(percentile, title.replace("年", "").replace("家庭", ""), color)
@@ -127,7 +148,7 @@ def main():
         st.session_state.result = None
     
     # 输入表单
-    with st.container(border=True, height=320):
+    with st.container(border=True):
         col1, col2, col3, col4 = st.columns([1.5, 2, 2, 1.5])
         
         with col1:
@@ -136,7 +157,8 @@ def main():
                 label="国家选择",
                 options=list(COUNTRY_DATA.keys()),
                 format_func=lambda x: COUNTRY_DATA[x]["name"],
-                index=0
+                index=0,
+                label_visibility="collapsed"
             )
             current_country = COUNTRY_DATA[country_code]
         
@@ -145,8 +167,9 @@ def main():
             income = st.number_input(
                 label="年收入",
                 min_value=1,
-                value=current_country["medianIncome"],  # 默认中位数（应显示超过50%的人）
-                format="%d"
+                value=int(current_country["medianIncome"]),
+                format="%d",
+                label_visibility="collapsed"
             )
         
         with col3:
@@ -154,12 +177,14 @@ def main():
             wealth = st.number_input(
                 label="家庭资产",
                 min_value=1,
-                value=current_country["medianWealth"],  # 默认中位数
-                format="%d"
+                value=int(current_country["medianWealth"]),
+                format="%d",
+                label_visibility="collapsed"
             )
         
         with col4:
             st.markdown("### 计算排名")
+            st.write("") # 占位对齐
             calculate_btn = st.button(
                 label="📊 查看排名",
                 type="primary",
@@ -169,7 +194,7 @@ def main():
     
     # 计算逻辑
     if calculate_btn:
-        with st.spinner("计算中..."):
+        with st.spinner("正在分析数据模型..."):
             income_percentile = get_log_normal_percentile(income, current_country["medianIncome"], current_country["incomeGini"])
             wealth_percentile = get_log_normal_percentile(wealth, current_country["medianWealth"], current_country["wealthGini"])
             
@@ -185,11 +210,6 @@ def main():
     if st.session_state.result:
         result = st.session_state.result
         st.markdown("---")
-        st.markdown(f"<h2 style='text-align: center;'>计算结果 ({result['country']['name']})</h2>", unsafe_allow_html=True)
-        
-        # 验证：打印百分位（调试用，可删除）
-        st.write(f"收入百分位：{result['income_percentile']:.4f}")
-        st.write(f"财富百分位：{result['wealth_percentile']:.4f}")
         
         result_card(
             title="年收入排名",
@@ -214,9 +234,8 @@ def main():
         )
         
         st.markdown("""
-        <div style="background-color: #fef3c7; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #f59e0b;">
-            <strong>免责声明：</strong> 本工具仅供娱乐和参考。排名结果基于对数正态分布模型和公开宏观经济数据估算，
-            非真实政府税务数据库查询。实际财富分布可能因地区差异、非正规经济等因素更复杂。
+        <div style="background-color: #fef3c7; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #f59e0b; color: #78350f; font-size: 0.9rem;">
+            <strong>免责声明：</strong> 本工具基于对数正态分布(Log-Normal Distribution)模型估算，仅供娱乐参考。实际财富分布极为复杂，且不同国家基尼系数定义存在差异。
         </div>
         """, unsafe_allow_html=True)
 
