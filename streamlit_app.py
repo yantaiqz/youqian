@@ -6,16 +6,15 @@ import json
 import datetime
 import os
 
-# -------------------------- 0. 全局配置与样式 --------------------------
+# -------------------------- 0. 全局配置 (必须在第一行) --------------------------
 st.set_page_config(
-    page_title="WealthRank 财富排行榜",
+    page_title="WealthRank Global",
     page_icon="🌍",
     layout="centered",
     initial_sidebar_state="collapsed"
 )
 
-
-# 硅谷风格 CSS
+# -------------------------- 1. 样式与配置 --------------------------
 st.markdown("""
 <style>
     .stApp { background-color: #ffffff; color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
@@ -47,7 +46,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# -------------------------- 1. 逻辑与数据 --------------------------
 TRANSLATIONS = {
     "English": {
         "title": "WealthRank Global",
@@ -63,8 +61,8 @@ TRANSLATIONS = {
         "disclaimer": "Based on Log-Normal Distribution Model • Not Financial Advice"
     },
     "中文": {
-        "title": "财富金字塔段位",
-        "subtitle": "个人财富实时排名",
+        "title": "全球财富段位",
+        "subtitle": "全球财富分布实时估算工具",
         "location": "居住地区",
         "income": "税前年收入",
         "wealth": "家庭净资产",
@@ -77,7 +75,6 @@ TRANSLATIONS = {
     }
 }
 
-
 COUNTRY_DATA = {
     "CN": {"name_en": "China", "name_zh": "中国", "currency": "¥", "population": 1411750000, "medianIncome": 35000, "medianWealth": 120000, "incomeGini": 0.7, "wealthGini": 1.1},
     "US": {"name_en": "USA", "name_zh": "美国", "currency": "$", "population": 331900000, "medianIncome": 45000, "medianWealth": 190000, "incomeGini": 0.8, "wealthGini": 1.5},
@@ -86,41 +83,51 @@ COUNTRY_DATA = {
     "DE": {"name_en": "Germany", "name_zh": "德国", "currency": "€", "population": 83200000, "medianIncome": 28000, "medianWealth": 110000, "incomeGini": 0.6, "wealthGini": 1.1},
 }
 
+# -------------------------- 2. 安全的计数器逻辑 --------------------------
 COUNTER_FILE = "visit_stats.json"
 
 def update_daily_visits():
-    """更新每日访问计数（基于本地文件），防止同一Session重复计数"""
-    today_str = datetime.date.today().isoformat()
-    
-    # 检查Session State，防止点击按钮时计数器狂跳
-    if "has_counted" in st.session_state:
+    """安全更新访问量，如果出错则返回 0，绝不让程序崩溃"""
+    try:
+        today_str = datetime.date.today().isoformat()
+        
+        # 1. 检查 Session，防止刷新页面重复计数
+        if "has_counted" in st.session_state:
+            if os.path.exists(COUNTER_FILE):
+                try:
+                    with open(COUNTER_FILE, "r") as f:
+                        return json.load(f).get("count", 0)
+                except:
+                    return 0
+            return 0
+
+        # 2. 读取或初始化数据
+        data = {"date": today_str, "count": 0}
+        
         if os.path.exists(COUNTER_FILE):
             try:
                 with open(COUNTER_FILE, "r") as f:
-                    return json.load(f).get("count", 0)
+                    file_data = json.load(f)
+                    if file_data.get("date") == today_str:
+                        data = file_data
             except:
-                return 0
+                pass # 文件损坏则从0开始
+        
+        # 3. 计数 +1
+        data["count"] += 1
+        
+        # 4. 写入文件 (最容易报错的地方，加了try保护)
+        with open(COUNTER_FILE, "w") as f:
+            json.dump(data, f)
+        
+        st.session_state["has_counted"] = True
+        return data["count"]
+        
+    except Exception as e:
+        # 如果发生任何错误（如权限不足），静默失败，不影响页面显示
         return 0
 
-    data = {"date": today_str, "count": 0}
-    
-    if os.path.exists(COUNTER_FILE):
-        try:
-            with open(COUNTER_FILE, "r") as f:
-                file_data = json.load(f)
-                if file_data.get("date") == today_str:
-                    data = file_data
-        except:
-            pass
-            
-    data["count"] += 1
-    
-    with open(COUNTER_FILE, "w") as f:
-        json.dump(data, f)
-    
-    st.session_state["has_counted"] = True
-    return data["count"]
-
+# -------------------------- 3. 核心计算逻辑 --------------------------
 def get_log_normal_percentile(value, median, shape_parameter):
     if value <= 1: return 0.0001
     try:
@@ -151,6 +158,7 @@ def draw_sparkline(percentile, color):
     simulated_z = (percentile - 0.5) * 6
     marker_x = percentile
     marker_y = np.exp(-0.5 * simulated_z**2)
+    
     fig, ax = plt.subplots(figsize=(6, 1.5))
     fig.patch.set_alpha(0)
     ax.patch.set_alpha(0)
@@ -161,6 +169,9 @@ def draw_sparkline(percentile, color):
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1.1)
     ax.axis('off')
+    
+    # 显式关闭图表防止内存占用
+    plt.close(fig) 
     return fig
 
 def render_metric_card(t, amount, currency, percentile, rank, color, lang_key):
@@ -184,7 +195,7 @@ def render_metric_card(t, amount, currency, percentile, rank, color, lang_key):
     """, unsafe_allow_html=True)
     st.pyplot(draw_sparkline(percentile, color), use_container_width=True)
 
-# -------------------------- 2. 主程序 --------------------------
+# -------------------------- 4. 主程序入口 --------------------------
 def main():
     col_header, col_lang = st.columns([4, 1.2])
     with col_lang:
@@ -213,4 +224,34 @@ def main():
 
     st.markdown("<br>", unsafe_allow_html=True)
     if st.button(text['btn_calc'], use_container_width=True):
-        inc_pct = get_log_
+        inc_pct = get_log_normal_percentile(income, country["medianIncome"], country["incomeGini"])
+        wlh_pct = get_log_normal_percentile(wealth, country["medianWealth"], country["wealthGini"])
+        inc_rank = max(1, math.floor(country["population"] * (1 - inc_pct)))
+        wlh_rank = max(1, math.floor(country["population"] * (1 - wlh_pct)))
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+        r1, r2 = st.columns(2)
+        with r1:
+            render_metric_card(text, income, country["currency"], inc_pct, inc_rank, "#4f46e5", selected_lang)
+        with r2:
+            render_metric_card(text, wealth, country["currency"], wlh_pct, wlh_rank, "#0ea5e9", selected_lang)
+
+    st.markdown(f"""
+    <div style="text-align: center; color: #cbd5e1; font-size: 0.75rem; margin-top: 30px;">
+        {text['disclaimer']}
+    </div>
+    """, unsafe_allow_html=True)
+
+    # -------- 每日访问统计 (即使报错也不崩溃) --------
+    daily_visits = update_daily_visits()
+    visit_text = f"Daily Visits: {daily_visits}" if selected_lang == "English" else f"今日访问: {daily_visits}"
+    
+    st.markdown(f"""
+    <div style="text-align: center; color: #e2e8f0; font-size: 0.7rem; margin-top: 10px; padding-bottom: 20px;">
+        {visit_text}
+    </div>
+    """, unsafe_allow_html=True)
+
+# -------------------------- 5. 必须包含此入口！ --------------------------
+if __name__ == "__main__":
+    main()
