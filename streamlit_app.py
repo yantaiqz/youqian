@@ -197,6 +197,18 @@ def render_metric_card(t, amount, currency, percentile, rank, color, lang_key):
 
 # -------------------------- 4. 主程序入口 --------------------------
 def main():
+
+    # -------- 每日访问统计 (即使报错也不崩溃) --------
+    daily_visits = update_daily_visits()
+    visit_text = f"Daily Visits: {daily_visits}" if selected_lang == "English" else f"今日访问: {daily_visits}"
+    
+    st.markdown(f"""
+    <div style="text-align: center; color: #64748b; font-size: 0.7rem; margin-top: 10px; padding-bottom: 20px;">
+        {visit_text}
+    </div>
+    """, unsafe_allow_html=True)
+
+    
     col_header, col_lang = st.columns([4, 1.2])
     with col_lang:
         selected_lang = st.radio("Language", ["English", "中文"], horizontal=True, label_visibility="collapsed")
@@ -239,16 +251,6 @@ def main():
     st.markdown(f"""
     <div style="text-align: center; color: #cbd5e1; font-size: 0.75rem; margin-top: 30px;">
         {text['disclaimer']}
-    </div>
-    """, unsafe_allow_html=True)
-
-    # -------- 每日访问统计 (即使报错也不崩溃) --------
-    daily_visits = update_daily_visits()
-    visit_text = f"Daily Visits: {daily_visits}" if selected_lang == "English" else f"今日访问: {daily_visits}"
-    
-    st.markdown(f"""
-    <div style="text-align: center; color: #e2e8f0; font-size: 0.7rem; margin-top: 10px; padding-bottom: 20px;">
-        {visit_text}
     </div>
     """, unsafe_allow_html=True)
 
