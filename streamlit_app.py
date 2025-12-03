@@ -3,239 +3,230 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 
-# -------------------------- 全局配置与数据 --------------------------
+# -------------------------- 0. 配置与样式注入 --------------------------
 st.set_page_config(
-    page_title="WealthRank Global - 全球财富排名",
-    page_icon="📊",
-    layout="wide",
+    page_title="WealthRank Global",
+    page_icon="🌍",
+    layout="centered", # 居中布局更聚焦，适合单页应用
     initial_sidebar_state="collapsed"
 )
 
+# 硅谷风格 CSS 注入
+st.markdown("""
+<style>
+    /* 全局字体与背景 */
+    .stApp {
+        background-color: #ffffff;
+        color: #0f172a;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    
+    /* 标题样式 */
+    h1 {
+        font-weight: 800 !important;
+        letter-spacing: -0.05rem;
+        color: #0f172a;
+    }
+    
+    /* 输入框优化 */
+    .stSelectbox div[data-baseweb="select"] > div,
+    .stNumberInput div[data-baseweb="input"] > div {
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        background-color: #f8fafc;
+    }
+    
+    /* 按钮优化 - 类似于 Stripe 风格 */
+    div.stButton > button {
+        background-color: #4f46e5;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        padding: 0.5rem 1rem;
+        transition: all 0.2s;
+    }
+    div.stButton > button:hover {
+        background-color: #4338ca;
+        box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+    }
+    
+    /* 结果卡片容器 */
+    .metric-card {
+        background-color: white;
+        border: 1px solid #f1f5f9;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    .metric-label {
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #64748b;
+        font-weight: 600;
+    }
+    .metric-value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #0f172a;
+        margin: 8px 0;
+    }
+    .metric-sub {
+        font-size: 0.9rem;
+        color: #475569;
+    }
+    .highlight {
+        color: #4f46e5;
+        font-weight: 700;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# -------------------------- 1. 数据与核心逻辑 --------------------------
 COUNTRY_DATA = {
-    "CN": {"name": "中国", "currency": "¥", "population": 1411750000, "medianIncome": 35000, "medianWealth": 120000, "incomeGini": 0.7, "wealthGini": 1.1},
-    "US": {"name": "美国", "currency": "$", "population": 331900000, "medianIncome": 45000, "medianWealth": 190000, "incomeGini": 0.8, "wealthGini": 1.5},
-    "JP": {"name": "日本", "currency": "¥", "population": 125700000, "medianIncome": 4000000, "medianWealth": 15000000, "incomeGini": 0.6, "wealthGini": 0.9},
-    "UK": {"name": "英国", "currency": "£", "population": 67330000, "medianIncome": 31000, "medianWealth": 150000, "incomeGini": 0.65, "wealthGini": 1.2},
-    "DE": {"name": "德国", "currency": "€", "population": 83200000, "medianIncome": 28000, "medianWealth": 110000, "incomeGini": 0.6, "wealthGini": 1.1},
+    "CN": {"name": "China", "currency": "¥", "population": 1411750000, "medianIncome": 35000, "medianWealth": 120000, "incomeGini": 0.7, "wealthGini": 1.1},
+    "US": {"name": "USA", "currency": "$", "population": 331900000, "medianIncome": 45000, "medianWealth": 190000, "incomeGini": 0.8, "wealthGini": 1.5},
+    "JP": {"name": "Japan", "currency": "¥", "population": 125700000, "medianIncome": 4000000, "medianWealth": 15000000, "incomeGini": 0.6, "wealthGini": 0.9},
+    "UK": {"name": "UK", "currency": "£", "population": 67330000, "medianIncome": 31000, "medianWealth": 150000, "incomeGini": 0.65, "wealthGini": 1.2},
+    "DE": {"name": "Germany", "currency": "€", "population": 83200000, "medianIncome": 28000, "medianWealth": 110000, "incomeGini": 0.6, "wealthGini": 1.1},
 }
 
-# -------------------------- 工具函数 --------------------------
 def get_log_normal_percentile(value, median, shape_parameter):
-    """计算对数正态分布的累积分布函数（CDF）"""
-    if value <= 1:
-        return 0.0001
-    
+    """(修复版) 计算对数正态分布CDF"""
+    if value <= 1: return 0.0001
     try:
-        # 参数设定
         mu = math.log(median)
         sigma = shape_parameter
-        
-        # 计算对数值
-        log_value = math.log(value)
-        
-        # 标准化：z = (ln(x) - mu) / sigma
-        z = (log_value - mu) / sigma
-        
-        # 使用 Python 标准库 math.erf 计算 CDF
-        # LogNormal CDF = 0.5 + 0.5 * erf( (ln(x) - mu) / (sigma * sqrt(2)) )
+        z = (math.log(value) - mu) / sigma
         percentile = 0.5 * (1 + math.erf(z / math.sqrt(2)))
-        
-        # 限制极端值
         return min(max(percentile, 0.0001), 0.9999)
-    except Exception as e:
-        # 如果出错（如数值过大导致溢出），返回保守值
+    except:
         return 0.0001
 
-def format_number(num):
-    """格式化数字（千分位分隔）"""
+def format_compact(num):
+    """简洁数字格式化 (例如 1.2M, 35k)"""
+    if num >= 1e9: return f"{num/1e9:.1f}B"
+    if num >= 1e6: return f"{num/1e6:.1f}M"
+    if num >= 1e4: return f"{num/1e3:.0f}k"
     return f"{num:,.0f}"
 
-def format_big_number(num):
-    """格式化大数（亿/万单位）"""
-    if num >= 1e8:
-        return f"{num / 1e8:.2f}亿"
-    elif num >= 1e4:
-        return f"{num / 1e4:.1f}万"
-    return f"{num:.0f}"
-
-def plot_distribution_chart(percentile, label, color):
-    """绘制分布曲线图"""
-    # 生成标准正态分布曲线数据
+def draw_sparkline(percentile, color):
+    """绘制极简风格的分布曲线"""
     x = np.linspace(-3, 3, 100)
     y = np.exp(-0.5 * x**2)
-    
-    # 映射 x 轴到 0-1 (为了可视化百分位)
-    # 使用累积分布函数(CDF)作为 x 轴映射可能更直观，但这里保持你的视觉风格
-    # 这里我们将 x 从 -3~3 线性映射到图表上的 0~1
-    chart_x = (x + 3) / 6 
+    chart_x = (x + 3) / 6
     chart_y = y / y.max()
     
-    # 根据输入的百分位计算对应的 Z-Score
-    # 使用 scipy.special.ndtri 会更准，但为了减少依赖，这里用简单的线性反推近似
-    # 或者如果不追求精确对应曲线形状，直接用 percentile 作为 x 位置
+    # 映射百分位位置
+    simulated_z = (percentile - 0.5) * 6
     marker_x = percentile
+    marker_y = np.exp(-0.5 * simulated_z**2)
+
+    fig, ax = plt.subplots(figsize=(6, 1.5)) # 宽矮比例
+    fig.patch.set_alpha(0) # 透明背景
+    ax.patch.set_alpha(0)
     
-    # 为了让点落在曲线上，我们需要反推该百分位对应的钟形曲线高度
-    # 简单的近似：假设 percentile 0.5 对应 x=0 (峰值)
-    # 这是一个视觉上的近似处理
-    simulated_z = (percentile - 0.5) * 6 # 映射回 -3 到 3
-    marker_y = np.exp(-0.5 * simulated_z**2) 
+    # 填充曲线
+    ax.fill_between(chart_x, chart_y, color=color, alpha=0.1)
+    ax.plot(chart_x, chart_y, color=color, linewidth=1.5, alpha=0.8)
     
-    fig, ax = plt.subplots(figsize=(8, 3))
+    # 当前位置标记
+    ax.scatter([marker_x], [marker_y], color=color, s=60, zorder=10)
+    ax.vlines(marker_x, 0, marker_y, color=color, linestyle=":", alpha=0.5)
     
-    # 绘制曲线和填充
-    ax.plot(chart_x, chart_y, color=color, linewidth=2)
-    ax.fill_between(chart_x, chart_y, alpha=0.3, color=color)
-    
-    # 绘制标示线和点
-    ax.axvline(x=marker_x, ymin=0, ymax=marker_y, color="#64748b", linestyle="--", linewidth=1)
-    ax.scatter(marker_x, marker_y, color=color, s=80, edgecolor="white", linewidth=2, zorder=5)
-    
-    # 动态调整标签位置防止溢出
-    text_y = marker_y + 0.1
-    ax.text(marker_x, text_y if text_y < 1.1 else marker_y - 0.2, "你在这里", 
-            ha="center", va="bottom" if text_y < 1.1 else "top", 
-            fontsize=10, fontweight="bold", color="#334155")
-    
+    # 极简坐标轴
     ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1.25)
-    ax.set_xticks([0, 0.5, 1])
-    ax.set_xticklabels([f"低{label}", "中位数", f"高{label}"])
-    ax.set_yticks([])
+    ax.set_ylim(0, 1.1)
+    ax.axis('off') # 关闭所有边框和刻度
     
-    # 移除边框
-    for spine in ax.spines.values():
-        spine.set_visible(False)
-    
-    st.pyplot(fig, use_container_width=True)
+    return fig
 
-# -------------------------- 核心组件 --------------------------
-def result_card(title, value, percentile, population, icon, color, country_data):
-    """结果卡片组件"""
-    better_than = f"{percentile * 100:.2f}"
-    # 排名计算：总人口 * (1 - 百分位)，至少为第 1 名
-    rank = max(1, math.floor(population * (1 - percentile)))
-    currency = country_data["currency"]
+# -------------------------- 2. 界面组件 --------------------------
+def render_metric_card(title, amount, currency, percentile, rank, color):
+    """自定义HTML卡片渲染"""
+    top_percent = (1 - percentile) * 100
+    top_str = f"Top {top_percent:.1f}%" if top_percent > 0.1 else "Top 0.1%"
     
-    with st.container(border=True):
-        col1, col2 = st.columns([3, 1.2])
-        with col1:
-            st.markdown(f"### {icon} {title}")
-            st.markdown(f"**{currency}{format_number(value)}**")
-            st.markdown(f"超过全国人口：**{better_than}%**")
-            st.progress(min(percentile, 1.0), text=f"Top {(100 - float(better_than)):.2f}%")
-            
-            st.markdown(f"""
-            <div style="background-color: {color}15; padding: 12px; border-radius: 8px; margin-top: 10px;">
-                <strong>📊 预估绝对排名：</strong> 第 {format_big_number(rank)} 名
-            </div>
-            """, unsafe_allow_html=True)
-            st.markdown(f"<small style='color: #94a3b8;'>* 基于 {country_data['name']} 总人口 {format_big_number(population)} 模型估算</small>", unsafe_allow_html=True)
-        
-        with col2:
-            plot_distribution_chart(percentile, title.replace("年", "").replace("家庭", ""), color)
-
-# -------------------------- 主应用 --------------------------
-def main():
-    st.markdown("""
-    <div style="text-align: center; margin-bottom: 30px;">
-        <h1 style="font-size: 2.5rem; font-weight: bold;">WealthRank <span style="color: #6366f1;">Global</span></h1>
-        <p style="font-size: 1.2rem; color: #64748b; margin-top: 10px;">你在全球财富金字塔的哪个位置？</p>
+    st.markdown(f"""
+    <div class="metric-card" style="border-top: 4px solid {color};">
+        <div class="metric-label">{title}</div>
+        <div class="metric-value">{currency} {format_compact(amount)}</div>
+        <div class="metric-sub">
+            Globally <span class="highlight" style="color: {color}">{top_str}</span>
+        </div>
+        <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 5px;">
+            ≈ #{format_compact(rank)} rank
+        </div>
     </div>
     """, unsafe_allow_html=True)
     
-    if "result" not in st.session_state:
-        st.session_state.result = None
+    # 插入图表
+    st.pyplot(draw_sparkline(percentile, color), use_container_width=True)
+
+# -------------------------- 3. 主程序 --------------------------
+def main():
+    # Header
+    st.markdown("<br>", unsafe_allow_html=True)
+    col_h1, col_h2 = st.columns([3, 1])
+    with col_h1:
+        st.markdown("# WealthRank Global")
+        st.markdown("<p style='color:#64748b; margin-top:-15px;'>Real-time wealth distribution estimator.</p>", unsafe_allow_html=True)
     
-    # 输入表单
-    with st.container(border=True):
-        col1, col2, col3, col4 = st.columns([1.5, 2, 2, 1.5])
-        
-        with col1:
-            st.markdown("### 居住国家/地区")
-            country_code = st.selectbox(
-                label="国家选择",
-                options=list(COUNTRY_DATA.keys()),
-                format_func=lambda x: COUNTRY_DATA[x]["name"],
-                index=0,
-                label_visibility="collapsed"
-            )
-            current_country = COUNTRY_DATA[country_code]
-        
-        with col2:
-            st.markdown("### 个人税前年收入")
-            income = st.number_input(
-                label="年收入",
-                min_value=1,
-                value=int(current_country["medianIncome"]),
-                format="%d",
-                label_visibility="collapsed"
-            )
-        
-        with col3:
-            st.markdown("### 家庭总净资产")
-            wealth = st.number_input(
-                label="家庭资产",
-                min_value=1,
-                value=int(current_country["medianWealth"]),
-                format="%d",
-                label_visibility="collapsed"
-            )
-        
-        with col4:
-            st.markdown("### 计算排名")
-            st.write("") # 占位对齐
-            calculate_btn = st.button(
-                label="📊 查看排名",
-                type="primary",
-                use_container_width=True,
-                disabled=income < 1 or wealth < 1
-            )
+    # Input Grid (紧凑布局)
+    st.markdown("---")
+    c1, c2, c3 = st.columns(3)
     
-    # 计算逻辑
-    if calculate_btn:
-        with st.spinner("正在分析数据模型..."):
-            income_percentile = get_log_normal_percentile(income, current_country["medianIncome"], current_country["incomeGini"])
-            wealth_percentile = get_log_normal_percentile(wealth, current_country["medianWealth"], current_country["wealthGini"])
+    with c1:
+        country_code = st.selectbox("Location", options=list(COUNTRY_DATA.keys()), format_func=lambda x: COUNTRY_DATA[x]["name"])
+        country = COUNTRY_DATA[country_code]
+        
+    with c2:
+        income = st.number_input("Annual Income", min_value=0, value=int(country["medianIncome"]), step=1000)
+        
+    with c3:
+        wealth = st.number_input("Net Worth", min_value=0, value=int(country["medianWealth"]), step=5000)
+
+    # Action Button
+    st.markdown("<br>", unsafe_allow_html=True)
+    if st.button("Calculate Position", use_container_width=True):
+        
+        # Calculation
+        inc_pct = get_log_normal_percentile(income, country["medianIncome"], country["incomeGini"])
+        wlh_pct = get_log_normal_percentile(wealth, country["medianWealth"], country["wealthGini"])
+        
+        inc_rank = max(1, math.floor(country["population"] * (1 - inc_pct)))
+        wlh_rank = max(1, math.floor(country["population"] * (1 - wlh_pct)))
+        
+        # Results Section
+        st.markdown("<br>", unsafe_allow_html=True)
+        r1, r2 = st.columns(2)
+        
+        with r1:
+            render_metric_card(
+                title="Income Level",
+                amount=income,
+                currency=country["currency"],
+                percentile=inc_pct,
+                rank=inc_rank,
+                color="#4f46e5" # Indigo
+            )
             
-            st.session_state.result = {
-                "country": current_country,
-                "income_val": income,
-                "income_percentile": income_percentile,
-                "wealth_val": wealth,
-                "wealth_percentile": wealth_percentile
-            }
-    
-    # 展示结果
-    if st.session_state.result:
-        result = st.session_state.result
-        st.markdown("---")
-        
-        result_card(
-            title="年收入排名",
-            value=result["income_val"],
-            percentile=result["income_percentile"],
-            population=result["country"]["population"],
-            icon="💼",
-            color="#6366f1",
-            country_data=result["country"]
-        )
-        
-        st.markdown("---")
-        
-        result_card(
-            title="家庭资产排名",
-            value=result["wealth_val"],
-            percentile=result["wealth_percentile"],
-            population=result["country"]["population"],
-            icon="💰",
-            color="#10b981",
-            country_data=result["country"]
-        )
-        
+        with r2:
+            render_metric_card(
+                title="Wealth Status",
+                amount=wealth,
+                currency=country["currency"],
+                percentile=wlh_pct,
+                rank=wlh_rank,
+                color="#0ea5e9" # Sky Blue
+            )
+
         st.markdown("""
-        <div style="background-color: #fef3c7; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #f59e0b; color: #78350f; font-size: 0.9rem;">
-            <strong>免责声明：</strong> 本工具基于对数正态分布(Log-Normal Distribution)模型估算，仅供娱乐参考。实际财富分布极为复杂，且不同国家基尼系数定义存在差异。
+        <div style="text-align: center; color: #cbd5e1; font-size: 0.75rem; margin-top: 30px;">
+            Based on Log-Normal Distribution Model • Not Financial Advice
         </div>
         """, unsafe_allow_html=True)
 
