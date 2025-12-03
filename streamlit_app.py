@@ -58,20 +58,20 @@ TRANSLATIONS = {
         "btn_calc": "Calculate Position",
         "card_income": "Income Level",
         "card_wealth": "Wealth Status",
-        "rank_prefix": "Globally",
+        "rank_prefix": "Nationwide", # 顺便修正英文，因数据是基于国家的，用Globally不准确
         "rank_approx": "≈ Rank #",
         "disclaimer": "Based on Log-Normal Distribution Model • Not Financial Advice"
     },
     "中文": {
-        "title": "全球财富段位",
-        "subtitle": "全球财富分布实时估算工具",
-        "location": "居住地区",
+        "title": "财富金字塔段位",
+        "subtitle": "个人财富实时排名",
+        "location": "居住国家",
         "income": "税前年收入",
         "wealth": "家庭净资产",
         "btn_calc": "查看我的排名",
         "card_income": "年收入水平",
         "card_wealth": "资产水平",
-        "rank_prefix": "超过全球",
+        "rank_prefix": "超过所选国家", # <--- 已修改此处
         "rank_approx": "≈ 绝对排名 第",
         "disclaimer": "基于对数正态分布模型估算 • 仅供参考 • 非理财建议"
     }
@@ -100,12 +100,10 @@ def get_log_normal_percentile(value, median, shape_parameter):
 def format_compact_localized(num, lang_key):
     """根据语言习惯格式化数字"""
     if lang_key == "中文":
-        # 中文习惯：万、亿
         if num >= 1e8: return f"{num/1e8:.2f}亿"
         if num >= 1e4: return f"{num/1e4:.1f}万"
         return f"{num:,.0f}"
     else:
-        # 英文习惯：k, M, B
         if num >= 1e9: return f"{num/1e9:.1f}B"
         if num >= 1e6: return f"{num/1e6:.1f}M"
         if num >= 1e4: return f"{num/1e3:.0f}k"
@@ -138,13 +136,10 @@ def draw_sparkline(percentile, color):
 
 # -------------------------- 3. 组件渲染 --------------------------
 def render_metric_card(t, amount, currency, percentile, rank, color, lang_key):
-    # 百分比文案处理
     top_percent = (1 - percentile) * 100
     if lang_key == "中文":
-        # 中文显示：前 10%
         rank_str = f"前 {top_percent:.1f}%" if top_percent > 0.1 else "前 0.1%"
     else:
-        # 英文显示：Top 10%
         rank_str = f"Top {top_percent:.1f}%" if top_percent > 0.1 else "Top 0.1%"
     
     rank_val_str = format_compact_localized(rank, lang_key)
@@ -166,19 +161,10 @@ def render_metric_card(t, amount, currency, percentile, rank, color, lang_key):
 
 # -------------------------- 4. 主程序 --------------------------
 def main():
-    # 顶部布局：标题 + 语言切换
     col_header, col_lang = st.columns([4, 1.2])
-    
     with col_lang:
-        # 语言选择器
-        selected_lang = st.radio(
-            "Language", 
-            ["English", "中文"], 
-            horizontal=True, 
-            label_visibility="collapsed"
-        )
+        selected_lang = st.radio("Language", ["English", "中文"], horizontal=True, label_visibility="collapsed")
     
-    # 获取当前语言的文本字典
     text = TRANSLATIONS[selected_lang]
     
     with col_header:
@@ -187,48 +173,33 @@ def main():
     
     st.markdown("---")
     
-    # 输入区域
     c1, c2, c3 = st.columns(3)
-    
     with c1:
-        # 根据语言显示国家名称
         country_code = st.selectbox(
             text['location'], 
             options=list(COUNTRY_DATA.keys()), 
             format_func=lambda x: COUNTRY_DATA[x]["name_zh"] if selected_lang == "中文" else COUNTRY_DATA[x]["name_en"]
         )
         country = COUNTRY_DATA[country_code]
-        
     with c2:
         income = st.number_input(text['income'], min_value=0, value=int(country["medianIncome"]), step=1000)
-        
     with c3:
         wealth = st.number_input(text['wealth'], min_value=0, value=int(country["medianWealth"]), step=5000)
 
-    # 按钮
     st.markdown("<br>", unsafe_allow_html=True)
     if st.button(text['btn_calc'], use_container_width=True):
-        
-        # 计算
         inc_pct = get_log_normal_percentile(income, country["medianIncome"], country["incomeGini"])
         wlh_pct = get_log_normal_percentile(wealth, country["medianWealth"], country["wealthGini"])
         
         inc_rank = max(1, math.floor(country["population"] * (1 - inc_pct)))
         wlh_rank = max(1, math.floor(country["population"] * (1 - wlh_pct)))
         
-        # 结果区域
         st.markdown("<br>", unsafe_allow_html=True)
         r1, r2 = st.columns(2)
-        
         with r1:
-            render_metric_card(
-                text, income, country["currency"], inc_pct, inc_rank, "#4f46e5", selected_lang
-            )
-            
+            render_metric_card(text, income, country["currency"], inc_pct, inc_rank, "#4f46e5", selected_lang)
         with r2:
-            render_metric_card(
-                text, wealth, country["currency"], wlh_pct, wlh_rank, "#0ea5e9", selected_lang
-            )
+            render_metric_card(text, wealth, country["currency"], wlh_pct, wlh_rank, "#0ea5e9", selected_lang)
 
         st.markdown(f"""
         <div style="text-align: center; color: #cbd5e1; font-size: 0.75rem; margin-top: 30px;">
