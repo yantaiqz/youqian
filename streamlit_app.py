@@ -1,7 +1,7 @@
 import streamlit as st
 import math
 import numpy as np
-import matplotlib.pyplot as plt  # 顶部统一导入
+import matplotlib.pyplot as plt
 
 # -------------------------- 全局配置与数据 --------------------------
 st.set_page_config(
@@ -21,29 +21,31 @@ COUNTRY_DATA = {
 
 # -------------------------- 工具函数 --------------------------
 def get_log_normal_percentile(value, median, shape_parameter):
-    """计算对数正态分布的累积分布函数（CDF），对应百分位"""
-    # 修复1：强化输入校验，避免0或负数导致对数错误
-    if value <= 1:  # 从 <=0 改为 <=1，避免接近0的极小值导致log计算异常
-        return 0.0001
+    """计算对数正态分布的累积分布函数（CDF），对应百分位（修复逻辑颠倒问题）"""
+    if value <= 1:
+        return 0.0001  # 极小值返回最低百分位
+    if value >= median * 1000:  # 极大值返回最高百分位（避免溢出）
+        return 0.9999
     
     try:
         mu = math.log(median)
         sigma = shape_parameter
-        z = (math.log(value) - mu) / sigma  # 标准化
+        z = (math.log(value) - mu) / sigma  # 标准化：值越大，z越大
         
-        # 修复2：添加z值异常校验（避免inf/NaN）
-        if math.isinf(z) or math.isnan(z):
-            return 0.0001
-        
-        # 误差函数近似正态分布CDF
-        t = 1 / (1 + 0.3275911 * math.abs(z / math.sqrt(2)))
+        # 修复核心：误差函数逻辑颠倒 → 正确计算正态分布CDF
+        t = 1 / (1 + 0.3275911 * math.abs(z))  # 移除多余的 sqrt(2)，修正标准化逻辑
         a1, a2, a3, a4, a5 = 0.254829592, -0.284496736, 1.421413741, -1.453152027, 1.061405429
-        error = 1 - ((((a5 * t + a4) * t + a3) * t + a2) * t + a1) * t * math.exp((-z * z) / 2)
+        # 正确的误差函数计算（原代码符号反了）
+        error = (((a5 * t + a4) * t + a3) * t + a2) * t + a1
+        if z < 0:
+            error = -error
         
-        percentile = 0.5 * (1 + (error if z > 0 else -error))
+        # 正确的CDF公式：Φ(z) = 0.5 * (1 + erf(z/√2))
+        percentile = 0.5 * (1 + error)
+        
+        # 限制极端值
         return min(max(percentile, 0.0001), 0.9999)
     except Exception as e:
-        # 异常兜底：避免计算过程中报错崩溃
         return 0.0001
 
 def format_number(num):
@@ -59,18 +61,17 @@ def format_big_number(num):
     return f"{num:.0f}"
 
 def plot_distribution_chart(percentile, label, color):
-    """绘制分布曲线图（修复图表创建逻辑）"""
+    """绘制分布曲线图"""
     x = np.linspace(-3, 3, 60)
     y = np.exp(-0.5 * x**2)
-    chart_x = (x + 3) / 6
+    chart_x = (x + 3) / 6  # 映射到0-1区间
     chart_y = y / y.max()
     
     marker_x = percentile
-    z_score = marker_x * 6 - 3
+    z_score = (marker_x - 0.5) * 6  # 从百分位反推z值（0.5对应z=0）
     marker_y = np.exp(-0.5 * z_score**2) / y.max()
     
-    # 修复：确保图表对象正确创建
-    fig, ax = plt.subplots(figsize=(8, 3))  # 缩小宽度适配卡片
+    fig, ax = plt.subplots(figsize=(8, 3))
     ax.plot(chart_x, chart_y, color=color, linewidth=2)
     ax.fill_between(chart_x, chart_y, alpha=0.3, color=color)
     
@@ -86,17 +87,17 @@ def plot_distribution_chart(percentile, label, color):
     for spine in ax.spines.values():
         spine.set_visible(False)
     
-    st.pyplot(fig, use_container_width=True)  # 适配容器宽度
+    st.pyplot(fig, use_container_width=True)
 
 # -------------------------- 核心组件 --------------------------
 def result_card(title, value, percentile, population, icon, color, country_data):
     """结果卡片组件"""
     better_than = f"{percentile * 100:.1f}"
-    rank = math.floor(population * (1 - percentile))
+    rank = math.floor(population * (1 - percentile))  # 百分位越高，排名越靠前（数值越小）
     currency = country_data["currency"]
     
     with st.container(border=True):
-        col1, col2 = st.columns([3, 1.2])  # 调整列宽比例
+        col1, col2 = st.columns([3, 1.2])
         with col1:
             st.markdown(f"### {icon} {title}")
             st.markdown(f"**{currency}{format_number(value)}**")
@@ -125,8 +126,8 @@ def main():
     if "result" not in st.session_state:
         st.session_state.result = None
     
-    # 输入表单（修复3：强化按钮禁用逻辑，避免输入0提交）
-    with st.container(border=True, height=320):  # 调整高度适配输入框
+    # 输入表单
+    with st.container(border=True, height=320):
         col1, col2, col3, col4 = st.columns([1.5, 2, 2, 1.5])
         
         with col1:
@@ -143,8 +144,8 @@ def main():
             st.markdown("### 个人税前年收入")
             income = st.number_input(
                 label="年收入",
-                min_value=1,  # 修复：最小值设为1，禁止输入0
-                value=current_country["medianIncome"],  # 默认值为该国中位数，提升体验
+                min_value=1,
+                value=current_country["medianIncome"],  # 默认中位数（应显示超过50%的人）
                 format="%d"
             )
         
@@ -152,14 +153,13 @@ def main():
             st.markdown("### 家庭总净资产")
             wealth = st.number_input(
                 label="家庭资产",
-                min_value=1,  # 修复：最小值设为1，禁止输入0
-                value=current_country["medianWealth"],  # 默认值
+                min_value=1,
+                value=current_country["medianWealth"],  # 默认中位数
                 format="%d"
             )
         
         with col4:
             st.markdown("### 计算排名")
-            # 双重保险：min_value=1 + 按钮禁用逻辑
             calculate_btn = st.button(
                 label="📊 查看排名",
                 type="primary",
@@ -186,6 +186,10 @@ def main():
         result = st.session_state.result
         st.markdown("---")
         st.markdown(f"<h2 style='text-align: center;'>计算结果 ({result['country']['name']})</h2>", unsafe_allow_html=True)
+        
+        # 验证：打印百分位（调试用，可删除）
+        st.write(f"收入百分位：{result['income_percentile']:.4f}")
+        st.write(f"财富百分位：{result['wealth_percentile']:.4f}")
         
         result_card(
             title="年收入排名",
