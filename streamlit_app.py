@@ -106,8 +106,8 @@ def plot_distribution_chart(percentile, label, color):
     z_score = marker_x * 6 - 3
     marker_y = np.exp(-0.5 * z_score**2) / y.max()  # 标记点y值
     
-    # 绘制曲线
-    fig, ax = st.pyplot(figsize=(10, 3))
+    # 绘制曲线（修复：正确创建matplotlib图表）
+    fig, ax = plt.subplots(figsize=(10, 3))  # 修复：使用plt.subplots()创建图表
     ax.plot(chart_x, chart_y, color=color, linewidth=2)
     ax.fill_between(chart_x, chart_y, alpha=0.3, color=color)
     
@@ -125,12 +125,14 @@ def plot_distribution_chart(percentile, label, color):
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
     ax.spines["left"].set_visible(False)
-    st.pyplot(fig)
+    
+    st.pyplot(fig)  # 修复：传入fig对象
 
 # -------------------------- 核心组件 --------------------------
 def result_card(title, value, percentile, population, icon, color, country_data):
     """结果卡片组件（收入/资产排名展示）"""
-    better_than = (percentile * 100).toFixed(1)
+    # 修复：将 JavaScript 的 toFixed(1) 替换为 Python 的格式化
+    better_than = f"{percentile * 100:.1f}"  # 关键修复！
     rank = math.floor(population * (1 - percentile))  # 绝对排名
     currency = country_data["currency"]
     
@@ -290,4 +292,6 @@ def main():
 
 # -------------------------- 运行应用 --------------------------
 if __name__ == "__main__":
+    # 修复：导入matplotlib.pyplot（之前遗漏）
+    import matplotlib.pyplot as plt  # 关键修复！
     main()
