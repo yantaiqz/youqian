@@ -6,8 +6,6 @@ import json
 import datetime
 import os
 
-
-
 # -------------------------- 0. 全局配置 (必须在第一行) --------------------------
 st.set_page_config(
     page_title="WealthRank 财富排行榜",
@@ -154,8 +152,6 @@ st.markdown("""
     div[data-testid="stRadio"] > div { flex-direction: row; gap: 10px; justify-content: flex-end; }
 </style>
 """, unsafe_allow_html=True)
-
-
 
 
 # -------------------------- 1. 样式与配置 --------------------------
