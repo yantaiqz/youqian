@@ -247,7 +247,7 @@ def main():
 
     # -------- 每日访问统计 (即使报错也不崩溃) --------
     daily_visits = update_daily_visits()
-    visit_text = f"今日访问: {daily_visits}"
+    visit_text = f"Daily Visits: {daily_visits}" if selected_lang == "English" else f"今日访问: {daily_visits}"
     
     st.markdown(f"""
     <div style="text-align: center; color: #64748b; font-size: 0.7rem; margin-top: 10px; padding-bottom: 20px;">
