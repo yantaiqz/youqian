@@ -8,10 +8,10 @@ st.set_page_config(
     page_title="WealthRank Pro",
     page_icon="💎",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="collapsed"  # 隐藏原生侧边栏
 )
 
-# -------------------------- 1. 核心样式 (底部导航+渲染保障) --------------------------
+# -------------------------- 1. 核心样式 (抽屉导航+渲染保障) --------------------------
 st.markdown("""
 <style>
     /* 1. 彻底隐藏Streamlit默认干扰元素 */
@@ -23,43 +23,57 @@ st.markdown("""
     .stApp {
         background-color: #f8fafc !important;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-        padding-bottom: 80px !important; /* 给底部导航预留空间 */
+        margin-left: 0 !important;
+        transition: margin-left 0.3s ease !important;
     }
     
-    /* 3. 主内容区布局优化 */
-    .block-container {
-        padding-top: 2rem !important;
-        padding-left: 2rem !important;
-        padding-right: 2rem !important;
-        max-width: 100% !important;
-    }
-    
-    /* 4. 底部导航栏核心样式 (固定在页面底部) */
-    .bottom-nav {
+    /* 3. 抽屉导航核心样式 */
+    .drawer-nav {
         position: fixed !important;
-        bottom: 0 !important;
+        top: 0 !important;
         left: 0 !important;
-        width: 100% !important;
+        width: 280px !important;
+        height: 100vh !important;
         background-color: #0f172a !important;
         color: white !important;
-        padding: 1rem 3rem !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: space-between !important;
-        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1) !important;
+        padding: 2rem 1.5rem !important;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1) !important;
         z-index: 9999 !important;
+        transform: translateX(-100%) !important;
+        transition: transform 0.3s ease !important;
         box-sizing: border-box !important;
     }
+    .drawer-nav.open {
+        transform: translateX(0) !important; /* 展开状态 */
+    }
     
-    /* 5. 导航栏元素样式 */
-    .nav-logo {
+    /* 4. 遮罩层 (展开时覆盖主内容) */
+    .drawer-overlay {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        background-color: rgba(0, 0, 0, 0.3) !important;
+        z-index: 9998 !important;
+        display: none !important;
+    }
+    .drawer-overlay.show {
+        display: block !important;
+    }
+    
+    /* 5. 导航栏内容样式 */
+    .nav-header {
         display: flex !important;
         align-items: center !important;
         gap: 12px !important;
+        margin-bottom: 2rem !important;
+        padding-bottom: 1rem !important;
+        border-bottom: 1px solid rgba(255,255,255,0.1) !important;
     }
-    .logo-icon {
-        width: 36px !important;
-        height: 36px !important;
+    .nav-logo-icon {
+        width: 40px !important;
+        height: 40px !important;
         background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%) !important;
         border-radius: 8px !important;
         display: flex !important;
@@ -67,48 +81,89 @@ st.markdown("""
         justify-content: center !important;
         font-size: 1.2rem !important;
     }
-    .logo-text {
-        font-size: 1.5rem !important;
+    .nav-logo-text {
+        font-size: 1.4rem !important;
         font-weight: 700 !important;
         letter-spacing: -0.02em !important;
     }
-    .logo-sub {
-        color: #94a3b8 !important;
-        font-weight: 400 !important;
-        font-size: 1rem !important;
-    }
     
-    .nav-links {
+    .nav-menu {
         display: flex !important;
-        gap: 30px !important;
-        align-items: center !important;
+        flex-direction: column !important;
+        gap: 0.5rem !important;
     }
-    .nav-link {
+    .nav-menu-item {
         color: #94a3b8 !important;
         text-decoration: none !important;
         font-weight: 500 !important;
         font-size: 0.95rem !important;
-        transition: color 0.2s !important;
+        padding: 0.8rem 1rem !important;
+        border-radius: 8px !important;
+        transition: all 0.2s !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 10px !important;
     }
-    .nav-link.active {
+    .nav-menu-item.active {
         color: #fff !important;
-        border-bottom: 2px solid #3b82f6 !important;
+        background-color: rgba(59, 130, 246, 0.2) !important;
+    }
+    .nav-menu-item:hover {
+        color: #fff !important;
+        background-color: rgba(255,255,255,0.05) !important;
     }
     
+    .nav-footer {
+        position: absolute !important;
+        bottom: 2rem !important;
+        left: 1.5rem !important;
+        right: 1.5rem !important;
+        padding-top: 1rem !important;
+        border-top: 1px solid rgba(255,255,255,0.1) !important;
+    }
+    .user-profile {
+        display: flex !important;
+        align-items: center !important;
+        gap: 10px !important;
+        color: #fff !important;
+    }
     .user-avatar {
-        width: 32px !important;
-        height: 32px !important;
+        width: 36px !important;
+        height: 36px !important;
         background-color: rgba(255,255,255,0.1) !important;
         border-radius: 50% !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        font-size: 0.8rem !important;
+        font-size: 0.9rem !important;
         border: 1px solid rgba(255,255,255,0.2) !important;
-        margin-left: 10px !important;
     }
     
-    /* 6. 按钮样式 */
+    /* 6. 展开/收起按钮 */
+    .toggle-btn {
+        position: fixed !important;
+        top: 1rem !important;
+        left: 1rem !important;
+        width: 48px !important;
+        height: 48px !important;
+        background-color: #0f172a !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 50% !important;
+        font-size: 1.2rem !important;
+        cursor: pointer !important;
+        z-index: 10000 !important;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2) !important;
+    }
+    
+    /* 7. 主内容区适配 */
+    .main-content {
+        padding: 2rem 2rem 2rem 4rem !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* 8. 按钮/卡片样式 */
     div.stButton > button {
         background-color: #0f172a !important; 
         color: white !important; 
@@ -122,7 +177,6 @@ st.markdown("""
         background-color: #1e293b !important;
     }
     
-    /* 7. 卡片样式 */
     .metric-card {
         background: white !important; 
         border: 1px solid #e2e8f0 !important; 
@@ -137,27 +191,79 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# -------------------------- 2. 渲染底部导航栏 (确保渲染) --------------------------
-def render_bottom_navbar():
-    # 简化HTML结构，避免解析冲突
-    navbar_html = """
-    <div class="bottom-nav">
-        <div class="nav-logo">
-            <div class="logo-icon">💎</div>
-            <div class="logo-text">WealthRank <span class="logo-sub">PRO</span></div>
+# -------------------------- 2. 渲染抽屉导航 (核心逻辑) --------------------------
+def render_drawer_nav():
+    # 初始化会话状态，控制导航展开/收起
+    if 'drawer_open' not in st.session_state:
+        st.session_state.drawer_open = False
+    
+    # 切换导航状态的JS代码
+    toggle_js = """
+    <script>
+        function toggleDrawer() {
+            const drawer = document.querySelector('.drawer-nav');
+            const overlay = document.querySelector('.drawer-overlay');
+            const app = document.querySelector('.stApp');
+            
+            drawer.classList.toggle('open');
+            overlay.classList.toggle('show');
+            app.style.marginLeft = drawer.classList.contains('open') ? '280px' : '0';
+        }
+    </script>
+    """
+    
+    # 渲染切换按钮
+    toggle_btn = """
+    <button class="toggle-btn" onclick="toggleDrawer()">☰</button>
+    """
+    
+    # 渲染抽屉导航主体
+    nav_html = f"""
+    {toggle_js}
+    {toggle_btn}
+    
+    <!-- 遮罩层 -->
+    <div class="drawer-overlay" onclick="toggleDrawer()"></div>
+    
+    <!-- 抽屉导航 -->
+    <div class="drawer-nav">
+        <div class="nav-header">
+            <div class="nav-logo-icon">💎</div>
+            <div class="nav-logo-text">WealthRank PRO</div>
         </div>
         
-        <div class="nav-links">
-            <a href="#" class="nav-link active">Dashboard</a>
-            <a href="#" class="nav-link">Markets</a>
-            <a href="#" class="nav-link">Calculator</a>
-            <a href="#" class="nav-link">Profile</a>
-            <div class="user-avatar">JD</div>
+        <div class="nav-menu">
+            <a href="#" class="nav-menu-item active">
+                📊 Dashboard
+            </a>
+            <a href="#" class="nav-menu-item">
+                🌍 Global Map
+            </a>
+            <a href="#" class="nav-menu-item">
+                🧮 Calculator
+            </a>
+            <a href="#" class="nav-menu-item">
+                📑 Reports
+            </a>
+            <a href="#" class="nav-menu-item">
+                ⚙️ Settings
+            </a>
+        </div>
+        
+        <div class="nav-footer">
+            <div class="user-profile">
+                <div class="user-avatar">JD</div>
+                <div>
+                    <div style="font-size:0.9rem; font-weight:600;">John Doe</div>
+                    <div style="font-size:0.7rem; color:#94a3b8;">Premium User</div>
+                </div>
+            </div>
         </div>
     </div>
     """
-    # 强制渲染，确保unsafe_allow_html=True
-    st.markdown(navbar_html, unsafe_allow_html=True)
+    
+    # 强制渲染导航（unsafe_allow_html=True 是关键）
+    st.markdown(nav_html, unsafe_allow_html=True)
 
 # -------------------------- 3. 业务逻辑 (简化，确保无报错) --------------------------
 TRANSLATIONS = {
@@ -213,7 +319,7 @@ def render_metric_card(t, amount, currency, percentile, rank, color, lang_key):
     """
     st.markdown(card_html, unsafe_allow_html=True)
     
-    # 简化绘图逻辑，避免报错
+    # 简化绘图，避免报错
     try:
         x = np.linspace(-3, 3, 50)
         y = np.exp(-0.5 * x**2)
@@ -235,70 +341,72 @@ def render_metric_card(t, amount, currency, percentile, rank, color, lang_key):
     except:
         pass
 
-# -------------------------- 4. 主程序入口 (核心逻辑，最后渲染导航栏) --------------------------
+# -------------------------- 4. 主程序入口 --------------------------
 def main():
-    # 1. 主内容区域（居中显示）
-    _, main_col, _ = st.columns([0.5, 9, 0.5])
+    # 1. 优先渲染抽屉导航（确保最先加载）
+    render_drawer_nav()
     
-    with main_col:
-        # 语言选择
-        h_col, l_col = st.columns([5, 1])
-        with l_col:
-            lang = st.selectbox("Language", ["English", "中文"], label_visibility="collapsed")
-        text = TRANSLATIONS[lang]
-        
-        # 标题
-        with h_col:
-            st.markdown(f"<h1 style='margin-top:0;'>{text['title']}</h1>", unsafe_allow_html=True)
-            st.markdown(f"<p style='color:#64748b; font-size:1.1rem; margin-top:-10px;'>{text['subtitle']}</p>", unsafe_allow_html=True)
-        
-        st.markdown("---")
-        
-        # 输入区域
-        c1, c2, c3 = st.columns(3)
-        with c1:
-            country_code = st.selectbox(
-                text['location'], 
-                options=COUNTRY_DATA.keys(), 
-                format_func=lambda x: COUNTRY_DATA[x]["name_zh"] if lang == "中文" else COUNTRY_DATA[x]["name_en"]
-            )
-            country = COUNTRY_DATA[country_code]
-        with c2:
-            income = st.number_input(text['income'], value=int(country["medianIncome"]), step=1000)
-        with c3:
-            wealth = st.number_input(text['wealth'], value=int(country["medianWealth"]), step=5000)
+    # 2. 主内容区域（适配导航展开/收起）
+    st.markdown('<div class="main-content">', unsafe_allow_html=True)
+    
+    # 语言选择
+    h_col, l_col = st.columns([5, 1])
+    with l_col:
+        lang = st.selectbox("Language", ["English", "中文"], label_visibility="collapsed")
+    text = TRANSLATIONS[lang]
+    
+    # 标题
+    with h_col:
+        st.markdown(f"<h1 style='margin-top:0;'>{text['title']}</h1>", unsafe_allow_html=True)
+        st.markdown(f"<p style='color:#64748b; font-size:1.1rem; margin-top:-10px;'>{text['subtitle']}</p>", unsafe_allow_html=True)
+    
+    st.markdown("---")
+    
+    # 输入区域
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        country_code = st.selectbox(
+            text['location'], 
+            options=COUNTRY_DATA.keys(), 
+            format_func=lambda x: COUNTRY_DATA[x]["name_zh"] if lang == "中文" else COUNTRY_DATA[x]["name_en"]
+        )
+        country = COUNTRY_DATA[country_code]
+    with c2:
+        income = st.number_input(text['income'], value=int(country["medianIncome"]), step=1000)
+    with c3:
+        wealth = st.number_input(text['wealth'], value=int(country["medianWealth"]), step=5000)
 
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # 计算按钮
+    if st.button(text['btn_calc'], type="primary"):
+        inc_pct = get_log_normal_percentile(income, country["medianIncome"], country["incomeGini"])
+        wlh_pct = get_log_normal_percentile(wealth, country["medianWealth"], country["wealthGini"])
+        inc_rank = max(1, math.floor(country["population"] * (1 - inc_pct)))
+        wlh_rank = max(1, math.floor(country["population"] * (1 - wlh_pct)))
+        
         st.markdown("<br>", unsafe_allow_html=True)
-        
-        # 计算按钮
-        if st.button(text['btn_calc'], type="primary"):
-            inc_pct = get_log_normal_percentile(income, country["medianIncome"], country["incomeGini"])
-            wlh_pct = get_log_normal_percentile(wealth, country["medianWealth"], country["wealthGini"])
-            inc_rank = max(1, math.floor(country["population"] * (1 - inc_pct)))
-            wlh_rank = max(1, math.floor(country["population"] * (1 - wlh_pct)))
-            
-            st.markdown("<br>", unsafe_allow_html=True)
-            r1, r2 = st.columns(2)
-            with r1: 
-                render_metric_card(text, income, country["currency"], inc_pct, inc_rank, "#3b82f6", lang)
-            with r2: 
-                render_metric_card(text, wealth, country["currency"], wlh_pct, wlh_rank, "#8b5cf6", lang)
-        
-        # 免责声明
-        st.markdown(f"""
-        <div style='text-align:center; color:#9ca3af; font-size:0.8rem; margin-top:40px; margin-bottom: 80px;'>
-            {text['disclaimer']}
-        </div>
-        """, unsafe_allow_html=True)
+        r1, r2 = st.columns(2)
+        with r1: 
+            render_metric_card(text, income, country["currency"], inc_pct, inc_rank, "#3b82f6", lang)
+        with r2: 
+            render_metric_card(text, wealth, country["currency"], wlh_pct, wlh_rank, "#8b5cf6", lang)
     
-    # 2. 最后渲染底部导航栏（确保在页面最底部）
-    render_bottom_navbar()
+    # 免责声明
+    st.markdown(f"""
+    <div style='text-align:center; color:#9ca3af; font-size:0.8rem; margin-top:40px;'>
+        {text['disclaimer']}
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # 闭合主内容容器
+    st.markdown('</div>', unsafe_allow_html=True)
 
-# -------------------------- 5. 执行主程序 (确保无静默报错) --------------------------
+# -------------------------- 5. 执行主程序 (异常捕获保障) --------------------------
 if __name__ == "__main__":
     try:
         main()
     except Exception as e:
         st.error(f"运行错误: {str(e)}")
-        # 即使主程序报错，也强制渲染底部导航
-        render_bottom_navbar()
+        # 即使报错也渲染导航
+        render_drawer_nav()
