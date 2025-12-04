@@ -333,6 +333,7 @@ def render_metric_card(t, amount, currency, percentile, rank, color, lang_key):
         </div>
     </div>
     """, unsafe_allow_html=True)
+    
     st.pyplot(draw_sparkline(percentile, color), use_container_width=True)
 
 
