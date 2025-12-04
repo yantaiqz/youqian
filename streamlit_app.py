@@ -6,6 +6,16 @@ import json
 import datetime
 import os
 
+
+
+# -------------------------- 0. 全局配置 (必须在第一行) --------------------------
+st.set_page_config(
+    page_title="WealthRank 财富排行榜",
+    page_icon="🌍",
+    layout="centered",
+    initial_sidebar_state="expanded" # 默认展开侧边栏以便看到效果
+)
+
 # -------------------------- 1. CSS 魔法 (导航核心) --------------------------
 st.markdown("""
 <style>
@@ -147,14 +157,6 @@ st.markdown("""
 
 
 
-
-# -------------------------- 0. 全局配置 (必须在第一行) --------------------------
-st.set_page_config(
-    page_title="WealthRank 财富排行榜",
-    page_icon="🌍",
-    layout="centered",
-    initial_sidebar_state="collapsed"
-)
 
 # -------------------------- 1. 样式与配置 --------------------------
 st.markdown("""
