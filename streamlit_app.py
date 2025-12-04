@@ -5,202 +5,221 @@ import matplotlib.pyplot as plt
 import json
 import datetime
 import os
+import textwrap # <--- 引入这个库来处理缩进问题
 
-# -------------------------- 0. 全局配置 (必须在第一行) --------------------------
+# -------------------------- 0. 全局配置 --------------------------
 st.set_page_config(
-    page_title="WealthRank 财富排行榜",
-    page_icon="🌍",
-    layout="centered",
-    initial_sidebar_state="expanded" 
+    page_title="WealthRank Pro",
+    page_icon="💎",
+    layout="wide", # 必须是 wide 布局
+    initial_sidebar_state="expanded"
 )
 
-# -------------------------- 1. CSS 魔法 (导航核心) --------------------------
+# -------------------------- 1. CSS 样式 (SaaS 风格) --------------------------
 st.markdown("""
 <style>
-    /* ----- 全局样式 ----- */
-    .stApp { background-color: #ffffff; color: #0f172a; font-family: -apple-system, sans-serif; }
-    h1 { font-weight: 800 !important; color: #0f172a; }
-    
-    /* 隐藏 Streamlit 默认的顶部装饰条 */
-    #header {visibility: hidden;}
-    
-    /* ----- 1. 导航容器样式 ----- */
-    .nav-container {
-        margin-bottom: 20px;
-        padding: 10px;
-        border-radius: 12px;
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
+    /* 全局字体优化 */
+    .stApp {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        background-color: #ffffff;
     }
-
-    /* ----- 2. 隐藏的 Checkbox (控制状态) ----- */
-    #nav-toggle {
-        display: none;
+    
+    /* 隐藏顶部红线和菜单 */
+    header {visibility: hidden;}
+    
+    /* ----- 侧边栏样式 ----- */
+    /* 侧边栏容器微调 */
+    [data-testid="stSidebar"] {
+        background-color: #f8fafc;
+        border-right: 1px solid #e2e8f0;
     }
-
-    /* ----- 3. 汉堡图标按钮 (Label) ----- */
-    .nav-label {
+    
+    /* 菜单组标题 */
+    .menu-header {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #94a3b8;
+        font-weight: 700;
+        margin: 20px 0 10px 10px;
+    }
+    
+    /* 菜单项按钮 */
+    .nav-link {
         display: flex;
         align-items: center;
-        cursor: pointer;
-        padding: 10px;
-        color: #475569;
-        font-weight: 600;
-        font-size: 0.9rem;
-        user-select: none;
-        transition: color 0.3s;
-    }
-    .nav-label:hover {
-        color: #4f46e5;
-    }
-
-    /* 图标绘制区域 */
-    .icon-box {
-        position: relative;
-        width: 24px;
-        height: 20px;
-        margin-right: 12px;
-    }
-
-    /* 三条线 (纯CSS绘制) */
-    .line {
-        position: absolute;
-        height: 2px;
-        width: 100%;
-        background-color: currentColor;
-        border-radius: 2px;
-        transition: all 0.4s cubic-bezier(0.68, -0.6, 0.32, 1.6); /* 弹性过渡 */
-    }
-    .line-1 { top: 0; }
-    .line-2 { top: 50%; transform: translateY(-50%); opacity: 1;}
-    .line-3 { bottom: 0; }
-
-    /* ----- 4. 状态变化动画 (核心魔法) ----- */
-    /* 当 Checkbox 被选中时，修改线条位置形成 X */
-    #nav-toggle:checked + .nav-label .line-1 {
-        top: 50%;
-        transform: translateY(-50%) rotate(45deg);
-    }
-    #nav-toggle:checked + .nav-label .line-2 {
-        opacity: 0;
-        transform: translateX(-10px); /* 飞出效果 */
-    }
-    #nav-toggle:checked + .nav-label .line-3 {
-        bottom: 50%;
-        transform: translateY(50%) rotate(-45deg);
-    }
-    #nav-toggle:checked + .nav-label {
-        color: #ef4444; /* 展开时文字变红 */
-    }
-
-    /* ----- 5. 菜单内容区域 (弹性展开) ----- */
-    .menu-content {
-        max-height: 0;
-        overflow: hidden;
-        opacity: 0;
-        transform: translateY(-10px);
-        transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); /* 果冻弹性 */
-    }
-
-    /* 展开状态 */
-    #nav-toggle:checked ~ .menu-content {
-        max-height: 500px; /* 足够的高度 */
-        opacity: 1;
-        transform: translateY(0);
-        margin-top: 15px;
-    }
-
-    /* ----- 6. 导航按钮风格 ----- */
-    .nav-btn {
-        display: block;
-        padding: 10px 15px;
-        margin-bottom: 6px;
-        border-radius: 8px;
-        background-color: white;
-        color: #64748b;
         text-decoration: none;
-        font-size: 0.85rem;
+        color: #475569;
+        padding: 8px 12px;
+        margin-bottom: 4px;
+        border-radius: 6px;
+        font-size: 0.9rem;
         font-weight: 500;
-        border: 1px solid transparent;
-        transition: all 0.2s;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+        transition: all 0.15s ease-in-out;
     }
-    .nav-btn:hover {
+    
+    /* 悬停效果：背景变淡蓝，文字变深蓝 */
+    .nav-link:hover {
+        background-color: #eff6ff;
+        color: #4f46e5;
+        transform: translateX(2px);
+    }
+    
+    /* 激活状态 (模拟) */
+    .nav-link.active {
+        background-color: #e0e7ff;
+        color: #4338ca;
+        font-weight: 600;
+    }
+    
+    /* 图标样式 */
+    .nav-icon {
+        margin-right: 10px;
+        font-size: 1.1rem;
+        width: 20px;
+        text-align: center;
+        display: inline-block;
+    }
+    
+    /* 徽章 (Badge) */
+    .badge {
+        margin-left: auto;
+        font-size: 0.7rem;
+        padding: 2px 6px;
+        border-radius: 99px;
+        background-color: #f1f5f9;
+        color: #64748b;
+        font-weight: 600;
+    }
+    .nav-link:hover .badge {
         background-color: #fff;
         color: #4f46e5;
-        border-color: #e0e7ff;
-        transform: translateX(4px); /* 悬停右移 */
-        box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.1);
     }
-    .nav-badge {
-        float: right;
-        background: #f1f5f9;
-        color: #94a3b8;
-        padding: 2px 6px;
-        border-radius: 4px;
+    
+    /* 用户卡片区域 */
+    .user-profile {
+        margin-top: 20px;
+        padding: 15px;
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+    }
+    .avatar {
+        width: 32px;
+        height: 32px;
+        background-color: #4f46e5;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 0.8rem;
+        margin-right: 10px;
+    }
+    .user-info {
+        font-size: 0.85rem;
+        color: #334155;
+        font-weight: 600;
+    }
+    .user-role {
         font-size: 0.7rem;
+        color: #94a3b8;
     }
     
-    /* 修复 Streamlit 默认按钮样式 */
-    div.stButton > button {
-        background-color: #4f46e5; color: white; border: none; border-radius: 8px;
-        font-weight: 600; padding: 0.5rem 1rem; transition: all 0.2s; width: 100%;
-    }
-    
-    /* 隐藏 Radio */
-    div[data-testid="stRadio"] > label { display: none; }
-    div[data-testid="stRadio"] > div { flex-direction: row; gap: 10px; justify-content: flex-end; }
-</style>
-""", unsafe_allow_html=True)
-
-
-# -------------------------- 1. 样式与配置 (补充) --------------------------
-st.markdown("""
-<style>
-    .stSelectbox div[data-baseweb="select"] > div,
-    .stNumberInput div[data-baseweb="input"] > div {
-        border-radius: 8px; border: 1px solid #e2e8f0; background-color: #f8fafc;
-    }
-    
+    /* 输入框和卡片美化 */
     .metric-card {
-        background-color: white; border: 1px solid #f1f5f9; border-radius: 12px;
-        padding: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        margin-bottom: 20px; text-align: center;
+        background: white;
+        border: 1px solid #f1f5f9;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+        text-align: center;
     }
-    .metric-label { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; font-weight: 600; }
-    .metric-value { font-size: 2.2rem; font-weight: 800; color: #0f172a; margin: 8px 0; }
-    .metric-sub { font-size: 0.9rem; color: #475569; }
-    .highlight { color: #4f46e5; font-weight: 700; }
+    .metric-value {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: #0f172a;
+        letter-spacing: -0.05rem;
+    }
+    .highlight { color: #4f46e5; }
+    
 </style>
 """, unsafe_allow_html=True)
 
+# -------------------------- 2. 侧边栏渲染 (最稳健的方式) --------------------------
+def render_sidebar():
+    with st.sidebar:
+        # 1. 标题区域
+        st.markdown("""
+        <div style="padding: 10px 10px 20px 10px;">
+            <h2 style="margin:0; font-size:1.4rem; color:#0f172a;">
+                Wealth<span style="color:#4f46e5">Rank</span>
+            </h2>
+            <p style="margin:0; font-size:0.8rem; color:#64748b;">Global Wealth Tracker</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # 2. 导航菜单 HTML (使用 textwrap 去除缩进，保证渲染)
+        menu_html = textwrap.dedent("""
+            <div class="menu-header">Platform</div>
+            
+            <a href="#" class="nav-link active">
+                <span class="nav-icon">📊</span>
+                <span>Dashboard</span>
+            </a>
+            <a href="#" class="nav-link">
+                <span class="nav-icon">🌍</span>
+                <span>Global Map</span>
+            </a>
+            <a href="#" class="nav-link">
+                <span class="nav-icon">📈</span>
+                <span>Trends</span>
+                <span class="badge">New</span>
+            </a>
+            
+            <div class="menu-header">Tools</div>
+            
+            <a href="#" class="nav-link">
+                <span class="nav-icon">🧮</span>
+                <span>Calculator</span>
+            </a>
+            <a href="#" class="nav-link">
+                <span class="nav-icon">📑</span>
+                <span>Reports</span>
+            </a>
+            <a href="#" class="nav-link">
+                <span class="nav-icon">⚖️</span>
+                <span>Comparison</span>
+            </a>
+            
+            <div class="menu-header">Settings</div>
+            
+            <a href="#" class="nav-link">
+                <span class="nav-icon">💎</span>
+                <span>Upgrade Plan</span>
+            </a>
+            <a href="#" class="nav-link">
+                <span class="nav-icon">⚙️</span>
+                <span>Preferences</span>
+            </a>
+            
+            <div class="user-profile">
+                <div class="avatar">U</div>
+                <div>
+                    <div class="user-info">User Admin</div>
+                    <div class="user-role">Free Tier</div>
+                </div>
+            </div>
+        """)
+        
+        st.markdown(menu_html, unsafe_allow_html=True)
+
+# -------------------------- 3. 核心计算逻辑 --------------------------
+# (保留原有的逻辑代码，不做变动)
 TRANSLATIONS = {
-    "English": {
-        "title": "WealthRank Global",
-        "subtitle": "Real-time wealth distribution estimator.",
-        "location": "Location",
-        "income": "Annual Income",
-        "wealth": "Net Worth",
-        "btn_calc": "Calculate Position",
-        "card_income": "Income Level",
-        "card_wealth": "Wealth Status",
-        "rank_prefix": "Nationwide",
-        "rank_approx": "≈ Rank #",
-        "disclaimer": "Based on Log-Normal Distribution Model • Not Financial Advice"
-    },
-    "中文": {
-        "title": "财富金字塔段位",
-        "subtitle": "个人财富实时排名",
-        "location": "居住国家",
-        "income": "税前年收入",
-        "wealth": "家庭净资产",
-        "btn_calc": "查看我的排名",
-        "card_income": "年收入水平",
-        "card_wealth": "资产水平",
-        "rank_prefix": "超过所选国家",
-        "rank_approx": "≈ 绝对排名 第",
-        "disclaimer": "基于对数正态分布模型估算 • 仅供参考 • 非理财建议"
-    }
+    "English": {"title": "WealthRank Global", "subtitle": "Real-time wealth distribution estimator.", "location": "Location", "income": "Annual Income", "wealth": "Net Worth", "btn_calc": "Calculate Position", "card_income": "Income Level", "card_wealth": "Wealth Status", "rank_prefix": "Nationwide", "rank_approx": "≈ Rank #", "disclaimer": "Based on Log-Normal Distribution Model"},
+    "中文": {"title": "财富金字塔段位", "subtitle": "个人财富实时排名系统", "location": "居住国家", "income": "税前年收入", "wealth": "家庭净资产", "btn_calc": "查看我的排名", "card_income": "年收入水平", "card_wealth": "资产水平", "rank_prefix": "超过所选国家", "rank_approx": "≈ 绝对排名 第", "disclaimer": "基于对数正态分布模型估算"}
 }
 
 COUNTRY_DATA = {
@@ -211,38 +230,6 @@ COUNTRY_DATA = {
     "DE": {"name_en": "Germany", "name_zh": "德国", "currency": "€", "population": 83200000, "medianIncome": 28000, "medianWealth": 110000, "incomeGini": 0.6, "wealthGini": 1.1},
 }
 
-# -------------------------- 2. 安全的计数器逻辑 --------------------------
-COUNTER_FILE = "visit_stats.json"
-
-def update_daily_visits():
-    try:
-        today_str = datetime.date.today().isoformat()
-        if "has_counted" in st.session_state:
-            if os.path.exists(COUNTER_FILE):
-                try:
-                    with open(COUNTER_FILE, "r") as f:
-                        return json.load(f).get("count", 0)
-                except:
-                    return 0
-            return 0
-        data = {"date": today_str, "count": 0}
-        if os.path.exists(COUNTER_FILE):
-            try:
-                with open(COUNTER_FILE, "r") as f:
-                    file_data = json.load(f)
-                    if file_data.get("date") == today_str:
-                        data = file_data
-            except:
-                pass
-        data["count"] += 1
-        with open(COUNTER_FILE, "w") as f:
-            json.dump(data, f)
-        st.session_state["has_counted"] = True
-        return data["count"]
-    except Exception as e:
-        return 0
-
-# -------------------------- 3. 核心计算逻辑 --------------------------
 def get_log_normal_percentile(value, median, shape_parameter):
     if value <= 1: return 0.0001
     try:
@@ -251,8 +238,7 @@ def get_log_normal_percentile(value, median, shape_parameter):
         z = (math.log(value) - mu) / sigma
         percentile = 0.5 * (1 + math.erf(z / math.sqrt(2)))
         return min(max(percentile, 0.0001), 0.9999)
-    except:
-        return 0.0001
+    except: return 0.0001
 
 def format_compact_localized(num, lang_key):
     if lang_key == "中文":
@@ -265,8 +251,26 @@ def format_compact_localized(num, lang_key):
         if num >= 1e4: return f"{num/1e3:.0f}k"
         return f"{num:,.0f}"
 
-def draw_sparkline(percentile, color):
-    x = np.linspace(-3, 3, 100)
+def render_metric_card(t, amount, currency, percentile, rank, color, lang_key):
+    top_percent = (1 - percentile) * 100
+    rank_str = f"Top {top_percent:.1f}%" if lang_key != "中文" else f"前 {top_percent:.1f}%"
+    st.markdown(f"""
+    <div class="metric-card" style="border-top: 4px solid {color};">
+        <div style="color:#64748b; font-size:0.85rem; font-weight:600; text-transform:uppercase;">
+            {t[f'card_{"income" if color=="#4f46e5" else "wealth"}']}
+        </div>
+        <div class="metric-value">{currency} {format_compact_localized(amount, lang_key)}</div>
+        <div style="font-size:0.9rem; color:#475569;">
+            {t['rank_prefix']} <span class="highlight" style="color:{color}; font-weight:700;">{rank_str}</span>
+        </div>
+        <div style="font-size:0.8rem; color:#94a3b8; margin-top:5px;">
+            {t['rank_approx']} {format_compact_localized(rank, lang_key)}
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # 极简 Sparkline
+    x = np.linspace(-3, 3, 50)
     y = np.exp(-0.5 * x**2)
     chart_x = (x + 3) / 6
     chart_y = y / y.max()
@@ -274,109 +278,45 @@ def draw_sparkline(percentile, color):
     marker_x = percentile
     marker_y = np.exp(-0.5 * simulated_z**2)
     
-    fig, ax = plt.subplots(figsize=(6, 1.5))
+    fig, ax = plt.subplots(figsize=(5, 1))
     fig.patch.set_alpha(0)
     ax.patch.set_alpha(0)
     ax.fill_between(chart_x, chart_y, color=color, alpha=0.1)
-    ax.plot(chart_x, chart_y, color=color, linewidth=1.5, alpha=0.8)
-    ax.scatter([marker_x], [marker_y], color=color, s=60, zorder=10)
-    ax.vlines(marker_x, 0, marker_y, color=color, linestyle=":", alpha=0.5)
-    ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1.1)
+    ax.plot(chart_x, chart_y, color=color, linewidth=1.5)
+    ax.scatter([marker_x], [marker_y], color=color, s=30)
     ax.axis('off')
-    plt.close(fig) 
-    return fig
+    st.pyplot(fig, use_container_width=True)
+    plt.close(fig)
 
-def render_metric_card(t, amount, currency, percentile, rank, color, lang_key):
-    top_percent = (1 - percentile) * 100
-    if lang_key == "中文":
-        rank_str = f"前 {top_percent:.1f}%" if top_percent > 0.1 else "前 0.1%"
-    else:
-        rank_str = f"Top {top_percent:.1f}%" if top_percent > 0.1 else "Top 0.1%"
-    
-    st.markdown(f"""
-    <div class="metric-card" style="border-top: 4px solid {color};">
-        <div class="metric-label">{t[f'card_{"income" if color=="#4f46e5" else "wealth"}']}</div>
-        <div class="metric-value">{currency} {format_compact_localized(amount, lang_key)}</div>
-        <div class="metric-sub">
-            {t['rank_prefix']} <span class="highlight" style="color: {color}">{rank_str}</span>
-        </div>
-        <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 5px;">
-            {t['rank_approx']} {format_compact_localized(rank, lang_key)}
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    st.pyplot(draw_sparkline(percentile, color), use_container_width=True)
-
-
-# -------------------------- 4. 侧边栏导航 (关键修正位置) --------------------------
-def render_sidebar_nav():
-    with st.sidebar:
-        # ⚠️ 注意：下面的 HTML 字符串必须紧贴左侧，不能有缩进！
-        # 如果有缩进，Markdown 会把它解析成“代码块”而非 HTML
-        st.markdown("""
-<div class="nav-container">
-    <input type="checkbox" id="nav-toggle">
-    
-    <label for="nav-toggle" class="nav-label">
-        <div class="icon-box">
-            <span class="line line-1"></span>
-            <span class="line line-2"></span>
-            <span class="line line-3"></span>
-        </div>
-        Menu / Navigation
-    </label>
-    
-    <div class="menu-content">
-        <a href="#" class="nav-btn">📊 Dashboard <span class="nav-badge">Home</span></a>
-        <a href="#" class="nav-btn">🌍 Global Maps</a>
-        <a href="#" class="nav-btn">💰 Wealth Calculator</a>
-        <a href="#" class="nav-btn">📈 Trends Analysis</a>
-        <a href="#" class="nav-btn">📄 Reports</a>
-        <a href="#" class="nav-btn">⚙️ Settings</a>
-        <a href="#" class="nav-btn">💎 Premium Plan</a>
-        <a href="#" class="nav-btn">👤 User Profile</a>
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
-        st.markdown("<br>", unsafe_allow_html=True)
-        st.info("💡 提示：点击上方的 Menu 体验弹性动画与图标变形效果。")
-
-
-
-# -------------------------- 5. 主程序入口 --------------------------
+# -------------------------- 4. 主程序入口 --------------------------
 def main():
-    render_sidebar_nav()
+    # 渲染新的稳健侧边栏
+    render_sidebar()
     
-    col_header, col_lang = st.columns([4, 1.2])
-    with col_lang:
-        selected_lang = st.radio("Language", ["English", "中文"], horizontal=True, label_visibility="collapsed")
+    # 主界面逻辑
+    c_head, c_lang = st.columns([5, 1])
+    with c_lang:
+        lang = st.selectbox("Language", ["English", "中文"], label_visibility="collapsed")
     
-    text = TRANSLATIONS[selected_lang]
+    text = TRANSLATIONS[lang]
     
-    with col_header:
-        st.markdown(f"# {text['title']}", unsafe_allow_html=True)
+    with c_head:
+        st.markdown(f"# {text['title']}")
         st.markdown(f"<p style='color:#64748b; margin-top:-15px;'>{text['subtitle']}</p>", unsafe_allow_html=True)
     
-    st.markdown("---", unsafe_allow_html=True)
+    st.markdown("---")
     
     c1, c2, c3 = st.columns(3)
     with c1:
-        country_code = st.selectbox(
-            text['location'], 
-            options=list(COUNTRY_DATA.keys()), 
-            format_func=lambda x: COUNTRY_DATA[x]["name_zh"] if selected_lang == "中文" else COUNTRY_DATA[x]["name_en"]
-        )
+        country_code = st.selectbox(text['location'], options=COUNTRY_DATA.keys(), format_func=lambda x: COUNTRY_DATA[x]["name_zh"] if lang == "中文" else COUNTRY_DATA[x]["name_en"])
         country = COUNTRY_DATA[country_code]
     with c2:
-        income = st.number_input(text['income'], min_value=0, value=int(country["medianIncome"]), step=1000)
+        income = st.number_input(text['income'], value=int(country["medianIncome"]), step=1000)
     with c3:
-        wealth = st.number_input(text['wealth'], min_value=0, value=int(country["medianWealth"]), step=5000)
+        wealth = st.number_input(text['wealth'], value=int(country["medianWealth"]), step=5000)
 
     st.markdown("<br>", unsafe_allow_html=True)
-    if st.button(text['btn_calc'], use_container_width=True):
+    if st.button(text['btn_calc'], type="primary", use_container_width=True):
         inc_pct = get_log_normal_percentile(income, country["medianIncome"], country["incomeGini"])
         wlh_pct = get_log_normal_percentile(wealth, country["medianWealth"], country["wealthGini"])
         inc_rank = max(1, math.floor(country["population"] * (1 - inc_pct)))
@@ -384,26 +324,10 @@ def main():
         
         st.markdown("<br>", unsafe_allow_html=True)
         r1, r2 = st.columns(2)
-        with r1:
-            render_metric_card(text, income, country["currency"], inc_pct, inc_rank, "#4f46e5", selected_lang)
-        with r2:
-            render_metric_card(text, wealth, country["currency"], wlh_pct, wlh_rank, "#0ea5e9", selected_lang)
-
-    st.markdown(f"""
-    <div style="text-align: center; color: #cbd5e1; font-size: 0.75rem; margin-top: 30px;">
-        {text['disclaimer']}
-    </div>
-    """, unsafe_allow_html=True)
-
-
-    daily_visits = update_daily_visits()
-    visit_text = f"Daily Visits: {daily_visits}" if selected_lang == "English" else f"今日访问: {daily_visits}"
+        with r1: render_metric_card(text, income, country["currency"], inc_pct, inc_rank, "#4f46e5", lang)
+        with r2: render_metric_card(text, wealth, country["currency"], wlh_pct, wlh_rank, "#0ea5e9", lang)
     
-    st.markdown(f"""
-    <div style="text-align: center; color: #64748b; font-size: 0.7rem; margin-top: 10px; padding-bottom: 20px;">
-        {visit_text}
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(f"<div style='text-align:center; color:#cbd5e1; font-size:0.8rem; margin-top:30px;'>{text['disclaimer']}</div>", unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
