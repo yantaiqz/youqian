@@ -11,148 +11,167 @@ import textwrap
 st.set_page_config(
     page_title="WealthRank Pro",
     page_icon="💎",
-    layout="wide", # 必须是 wide 布局
-#    initial_sidebar_state="collapsed" # 默认收起侧边栏（实际上我们要隐藏它）
-    initial_sidebar_state="expanded" # 默认收起侧边栏（实际上我们要隐藏它）
+    layout="wide",  # 必须是 wide 布局
+    initial_sidebar_state="collapsed"  # 彻底收起侧边栏，避免占用空间
 )
 
-# -------------------------- 1. CSS 样式 (顶部导航核心) --------------------------
+# -------------------------- 1. CSS 样式 (优化导航栏显示核心) --------------------------
 st.markdown("""
 <style>
     /* ----- 基础重置 ----- */
     .stApp {
         background-color: #ffffff;
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        padding-top: 80px !important; /* 给固定导航栏预留顶部空间 */
     }
     
-    /* 隐藏 Streamlit 默认的顶部红线和汉堡菜单 */
-  #  header {visibility: hidden;}
-  #  [data-testid="stSidebar"] {display: none;} /* 彻底隐藏侧边栏 */
+    /* 隐藏 Streamlit 默认元素，避免干扰导航栏 */
+    header {visibility: hidden !important;} /* 隐藏顶部默认栏 */
+    [data-testid="stSidebar"] {display: none !important;} /* 彻底隐藏侧边栏 */
+    [data-testid="stToolbar"] {display: none !important;} /* 隐藏右上角工具栏 */
     
-    /* ----- 顶部导航栏 (Navbar) ----- */
+    /* ----- 顶部导航栏 (Navbar) - 核心优化 ----- */
     .top-navbar {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 70px;
-        background: rgba(255, 255, 255, 0.9); /* 半透明白 */
-        backdrop-filter: blur(12px); /* 毛玻璃特效 */
-        border-bottom: 1px solid #e2e8f0;
-        z-index: 9999;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0 40px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+        position: fixed !important; /* 强制固定 */
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 70px !important;
+        background: rgba(255, 255, 255, 0.95) !important; /* 提高不透明度，更清晰 */
+        backdrop-filter: blur(12px) !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+        z-index: 99999 !important; /* 提高层级，确保不被遮挡 */
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 0 40px !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+        box-sizing: border-box !important; /* 避免padding导致宽度溢出 */
     }
     
     /* 左侧：Logo */
     .navbar-logo {
-        font-size: 1.5rem;
-        font-weight: 800;
-        color: #0f172a;
-        display: flex;
-        align-items: center;
-        gap: 10px;
+        font-size: 1.5rem !important;
+        font-weight: 800 !important;
+        color: #0f172a !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 10px !important;
     }
     .logo-icon {
-        width: 36px;
-        height: 36px;
-        background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
-        border-radius: 8px;
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.2rem;
+        width: 36px !important;
+        height: 36px !important;
+        background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%) !important;
+        border-radius: 8px !important;
+        color: white !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 1.2rem !important;
     }
     
     /* 中间：导航链接 (图片/图标风格) */
     .nav-links {
-        display: flex;
-        gap: 30px;
-        height: 100%;
+        display: flex !important;
+        gap: 30px !important;
+        height: 100% !important;
     }
     
     .nav-item {
-        position: relative;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        height: 100%;
-        color: #64748b;
-        text-decoration: none;
-        font-weight: 600;
-        font-size: 0.9rem;
-        transition: all 0.2s;
-        border-bottom: 2px solid transparent;
+        position: relative !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        height: 100% !important;
+        color: #64748b !important;
+        text-decoration: none !important;
+        font-weight: 600 !important;
+        font-size: 0.9rem !important;
+        transition: all 0.2s ease !important;
+        border-bottom: 2px solid transparent !important;
+        cursor: pointer !important; /* 鼠标悬浮显示指针 */
     }
     
     .nav-item:hover {
-        color: #4f46e5;
+        color: #4f46e5 !important;
     }
     
-    /* 激活状态模拟 */
+    /* 激活状态 */
     .nav-item.active {
-        color: #0f172a;
-        border-bottom: 2px solid #4f46e5;
+        color: #0f172a !important;
+        border-bottom: 2px solid #4f46e5 !important;
     }
     
     /* 导航图标 */
     .nav-img {
-        font-size: 1.2rem;
-        filter: grayscale(100%);
-        transition: filter 0.2s;
+        font-size: 1.2rem !important;
+        filter: grayscale(100%) !important;
+        transition: filter 0.2s ease !important;
     }
     .nav-item:hover .nav-img,
     .nav-item.active .nav-img {
-        filter: grayscale(0%);
+        filter: grayscale(0%) !important;
     }
     
     /* 右侧：用户区域 */
     .user-area {
-        display: flex;
-        align-items: center;
-        gap: 15px;
+        display: flex !important;
+        align-items: center !important;
+        gap: 15px !important;
     }
     .user-avatar {
-        width: 36px;
-        height: 36px;
-        background-color: #f1f5f9;
-        color: #475569;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        border: 2px solid #fff;
-        box-shadow: 0 0 0 2px #e2e8f0;
+        width: 36px !important;
+        height: 36px !important;
+        background-color: #f1f5f9 !important;
+        color: #475569 !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-weight: bold !important;
+        border: 2px solid #fff !important;
+        box-shadow: 0 0 0 2px #e2e8f0 !important;
     }
     .search-bar {
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        padding: 6px 12px;
-        border-radius: 6px;
-        font-size: 0.85rem;
-        color: #64748b;
-        width: 200px;
+        background: #f8fafc !important;
+        border: 1px solid #e2e8f0 !important;
+        padding: 6px 12px !important;
+        border-radius: 6px !important;
+        font-size: 0.85rem !important;
+        color: #64748b !important;
+        width: 200px !important;
+        box-sizing: border-box !important;
     }
     
-    /* ----- 布局调整 ----- */
-    /* 因为 Navbar 是 fixed 的，主内容需要下移，否则会被遮挡 */
-    .main .block-container {
-        padding-top: 50px !important; 
-    }
-    
-    /* 卡片美化 */
+    /* ----- 卡片美化 ----- */
     .metric-card {
-        background: white; border: 1px solid #f1f5f9; border-radius: 12px;
-        padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
-        text-align: center;
+        background: white !important; 
+        border: 1px solid #f1f5f9 !important; 
+        border-radius: 12px !important;
+        padding: 24px !important; 
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02) !important;
+        text-align: center !important;
+        box-sizing: border-box !important;
     }
-    .metric-value { font-size: 2.2rem; font-weight: 800; color: #0f172a; }
-    .highlight { color: #4f46e5; }
+    .metric-value { 
+        font-size: 2.2rem !important; 
+        font-weight: 800 !important; 
+        color: #0f172a !important; 
+    }
+    .highlight { color: #4f46e5 !important; }
+
+    /* 适配小屏幕，避免导航栏溢出 */
+    @media (max-width: 900px) {
+        .top-navbar {
+            padding: 0 20px !important;
+        }
+        .nav-links {
+            gap: 15px !important;
+        }
+        .search-bar {
+            width: 150px !important;
+        }
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -162,22 +181,22 @@ def render_top_navbar():
     <nav class="top-navbar">
         <div class="navbar-logo">
             <div class="logo-icon">W</div>
-            WealthRank
+            WealthRank Pro
         </div>
         
         <div class="nav-links">
-            <a href="#" class="nav-item active">
+            <div class="nav-item active">
                 <span class="nav-img">📊</span> Dashboard
-            </a>
-            <a href="#" class="nav-item">
+            </div>
+            <div class="nav-item">
                 <span class="nav-img">🌍</span> Global Map
-            </a>
-            <a href="#" class="nav-item">
+            </div>
+            <div class="nav-item">
                 <span class="nav-img">🧮</span> Calculator
-            </a>
-            <a href="#" class="nav-item">
+            </div>
+            <div class="nav-item">
                 <span class="nav-img">📑</span> Reports
-            </a>
+            </div>
         </div>
         
         <div class="user-area">
@@ -186,9 +205,10 @@ def render_top_navbar():
         </div>
     </nav>
     """)
+    # 强制渲染导航栏，放在最顶部
     st.markdown(navbar_html, unsafe_allow_html=True)
 
-# -------------------------- 3. 逻辑与数据 (保持稳定) --------------------------
+# -------------------------- 3. 逻辑与数据 (保持不变) --------------------------
 TRANSLATIONS = {
     "English": {"title": "Global Wealth Position", "subtitle": "Real-time wealth distribution estimator.", "location": "Location", "income": "Annual Income", "wealth": "Net Worth", "btn_calc": "Calculate Position", "card_income": "Income Level", "card_wealth": "Wealth Status", "rank_prefix": "Nationwide", "rank_approx": "≈ Rank #", "disclaimer": "Based on Log-Normal Distribution Model"},
     "中文": {"title": "全球财富金字塔", "subtitle": "个人财富实时排名系统", "location": "居住国家", "income": "税前年收入", "wealth": "家庭净资产", "btn_calc": "查看我的排名", "card_income": "年收入水平", "card_wealth": "资产水平", "rank_prefix": "超过所选国家", "rank_approx": "≈ 绝对排名 第", "disclaimer": "基于对数正态分布模型估算"}
@@ -261,11 +281,8 @@ def render_metric_card(t, amount, currency, percentile, rank, color, lang_key):
 
 # -------------------------- 4. 主程序入口 --------------------------
 def main():
-    # 渲染顶部导航
+    # 优先渲染导航栏（必须放在最前面）
     render_top_navbar()
-    
-    # 增加一点顶部间距，给 Navbar 留空间
-    st.markdown("<br>", unsafe_allow_html=True)
     
     # 语言选择
     c_head, c_lang = st.columns([5, 1])
