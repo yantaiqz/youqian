@@ -386,10 +386,10 @@ def main():
     text = TRANSLATIONS[selected_lang]
     
     with col_header:
-        st.markdown(f"# {text['title']}")
+        st.markdown(f"# {text['title']}", unsafe_allow_html=True)
         st.markdown(f"<p style='color:#64748b; margin-top:-15px;'>{text['subtitle']}</p>", unsafe_allow_html=True)
     
-    st.markdown("---")
+    st.markdown("---", unsafe_allow_html=True)
     
     c1, c2, c3 = st.columns(3)
     with c1:
