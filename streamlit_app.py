@@ -22,7 +22,7 @@ st.markdown("""
     h1 { font-weight: 800 !important; color: #0f172a; }
     
     /* 隐藏 Streamlit 默认的顶部装饰条 */
-    header {visibility: hidden;}
+    # header {visibility: hidden;}
     
     /* ----- 1. 导航容器样式 ----- */
     .nav-container {
