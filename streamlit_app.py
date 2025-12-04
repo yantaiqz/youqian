@@ -6,6 +6,148 @@ import json
 import datetime
 import os
 
+# -------------------------- 1. CSS 魔法 (导航核心) --------------------------
+st.markdown("""
+<style>
+    /* ----- 全局样式 ----- */
+    .stApp { background-color: #ffffff; color: #0f172a; font-family: -apple-system, sans-serif; }
+    h1 { font-weight: 800 !important; color: #0f172a; }
+    
+    /* 隐藏 Streamlit 默认的顶部装饰条 */
+    header {visibility: hidden;}
+    
+    /* ----- 1. 导航容器样式 ----- */
+    .nav-container {
+        margin-bottom: 20px;
+        padding: 10px;
+        border-radius: 12px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+    }
+
+    /* ----- 2. 隐藏的 Checkbox (控制状态) ----- */
+    #nav-toggle {
+        display: none;
+    }
+
+    /* ----- 3. 汉堡图标按钮 (Label) ----- */
+    .nav-label {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        padding: 10px;
+        color: #475569;
+        font-weight: 600;
+        font-size: 0.9rem;
+        user-select: none;
+        transition: color 0.3s;
+    }
+    .nav-label:hover {
+        color: #4f46e5;
+    }
+
+    /* 图标绘制区域 */
+    .icon-box {
+        position: relative;
+        width: 24px;
+        height: 20px;
+        margin-right: 12px;
+    }
+
+    /* 三条线 (纯CSS绘制) */
+    .line {
+        position: absolute;
+        height: 2px;
+        width: 100%;
+        background-color: currentColor;
+        border-radius: 2px;
+        transition: all 0.4s cubic-bezier(0.68, -0.6, 0.32, 1.6); /* 弹性过渡 */
+    }
+    .line-1 { top: 0; }
+    .line-2 { top: 50%; transform: translateY(-50%); opacity: 1;}
+    .line-3 { bottom: 0; }
+
+    /* ----- 4. 状态变化动画 (核心魔法) ----- */
+    /* 当 Checkbox 被选中时，修改线条位置形成 X */
+    #nav-toggle:checked + .nav-label .line-1 {
+        top: 50%;
+        transform: translateY(-50%) rotate(45deg);
+    }
+    #nav-toggle:checked + .nav-label .line-2 {
+        opacity: 0;
+        transform: translateX(-10px); /* 飞出效果 */
+    }
+    #nav-toggle:checked + .nav-label .line-3 {
+        bottom: 50%;
+        transform: translateY(50%) rotate(-45deg);
+    }
+    #nav-toggle:checked + .nav-label {
+        color: #ef4444; /* 展开时文字变红 */
+    }
+
+    /* ----- 5. 菜单内容区域 (弹性展开) ----- */
+    .menu-content {
+        max-height: 0;
+        overflow: hidden;
+        opacity: 0;
+        transform: translateY(-10px);
+        transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); /* 果冻弹性 */
+    }
+
+    /* 展开状态 */
+    #nav-toggle:checked ~ .menu-content {
+        max-height: 500px; /* 足够的高度 */
+        opacity: 1;
+        transform: translateY(0);
+        margin-top: 15px;
+    }
+
+    /* ----- 6. 导航按钮风格 ----- */
+    .nav-btn {
+        display: block;
+        padding: 10px 15px;
+        margin-bottom: 6px;
+        border-radius: 8px;
+        background-color: white;
+        color: #64748b;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 500;
+        border: 1px solid transparent;
+        transition: all 0.2s;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    }
+    .nav-btn:hover {
+        background-color: #fff;
+        color: #4f46e5;
+        border-color: #e0e7ff;
+        transform: translateX(4px); /* 悬停右移 */
+        box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.1);
+    }
+    .nav-badge {
+        float: right;
+        background: #f1f5f9;
+        color: #94a3b8;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.7rem;
+    }
+    
+    /* 修复 Streamlit 默认按钮样式 */
+    div.stButton > button {
+        background-color: #4f46e5; color: white; border: none; border-radius: 8px;
+        font-weight: 600; padding: 0.5rem 1rem; transition: all 0.2s; width: 100%;
+    }
+    
+    /* 隐藏 Radio */
+    div[data-testid="stRadio"] > label { display: none; }
+    div[data-testid="stRadio"] > div { flex-direction: row; gap: 10px; justify-content: flex-end; }
+</style>
+""", unsafe_allow_html=True)
+
+
+
+
 # -------------------------- 0. 全局配置 (必须在第一行) --------------------------
 st.set_page_config(
     page_title="WealthRank 财富排行榜",
@@ -195,9 +337,46 @@ def render_metric_card(t, amount, currency, percentile, rank, color, lang_key):
     """, unsafe_allow_html=True)
     st.pyplot(draw_sparkline(percentile, color), use_container_width=True)
 
+
+# -------------------------- 4. 侧边栏导航 (HTML注入) --------------------------
+def render_sidebar_nav():
+    with st.sidebar:
+        # 这里是核心：注入 HTML 导航结构
+        # 由于 Streamlit 刷新机制，这里的 href="#" 只是示例，实际项目中通常不做页面跳转
+        # 或者是跳转到 ?page=xxx
+        st.markdown("""
+        <div class="nav-container">
+            <input type="checkbox" id="nav-toggle">
+            
+            <label for="nav-toggle" class="nav-label">
+                <div class="icon-box">
+                    <span class="line line-1"></span>
+                    <span class="line line-2"></span>
+                    <span class="line line-3"></span>
+                </div>
+                Menu / Navigation
+            </label>
+            
+            <div class="menu-content">
+                <a href="#" class="nav-btn">📊 Dashboard <span class="nav-badge">Home</span></a>
+                <a href="#" class="nav-btn">🌍 Global Maps</a>
+                <a href="#" class="nav-btn">💰 Wealth Calculator</a>
+                <a href="#" class="nav-btn">📈 Trends Analysis</a>
+                <a href="#" class="nav-btn">📄 Reports</a>
+                <a href="#" class="nav-btn">⚙️ Settings</a>
+                <a href="#" class="nav-btn">💎 Premium Plan</a>
+                <a href="#" class="nav-btn">👤 User Profile</a>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.info("💡 提示：点击上方的 Menu 体验弹性动画与图标变形效果。")
+
+
 # -------------------------- 4. 主程序入口 --------------------------
 def main():
-
+    render_sidebar_nav()
     
     col_header, col_lang = st.columns([4, 1.2])
     with col_lang:
