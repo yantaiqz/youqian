@@ -5,250 +5,192 @@ import matplotlib.pyplot as plt
 import json
 import datetime
 import os
-import textwrap # 关键库：用于清除多行字符串的缩进
+import textwrap
 
 # -------------------------- 0. 全局配置 --------------------------
 st.set_page_config(
     page_title="WealthRank Pro",
     page_icon="💎",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    layout="wide", # 必须是 wide 布局
+    initial_sidebar_state="collapsed" # 默认收起侧边栏（实际上我们要隐藏它）
 )
 
-# -------------------------- 1. CSS 样式 (折叠菜单核心) --------------------------
-# 使用 textwrap.dedent 确保 CSS 不会被 Python 的缩进影响
-css_code = textwrap.dedent("""
-    <style>
-    /* 全局字体 */
+# -------------------------- 1. CSS 样式 (顶部导航核心) --------------------------
+st.markdown("""
+<style>
+    /* ----- 基础重置 ----- */
     .stApp {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         background-color: #ffffff;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
     
-    /* 隐藏 Streamlit 默认头部 */
+    /* 隐藏 Streamlit 默认的顶部红线和汉堡菜单 */
     header {visibility: hidden;}
+    [data-testid="stSidebar"] {display: none;} /* 彻底隐藏侧边栏 */
     
-    /* ----- 侧边栏样式 ----- */
-    [data-testid="stSidebar"] {
-        background-color: #f8fafc;
-        border-right: 1px solid #e2e8f0;
-    }
-    
-    /* 1. 菜单容器 */
-    .nav-container {
-        padding: 10px;
-    }
-
-    /* 2. 原生折叠组件 <details> 样式 */
-    details {
-        margin-bottom: 8px;
-        border-radius: 8px;
-        overflow: hidden;
-        background: transparent;
-        transition: background 0.2s;
-    }
-    
-    /* 3. 标题行 <summary> 样式 */
-    summary {
-        list-style: none; /* 隐藏默认三角 */
-        padding: 10px 12px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: #64748b;
-        cursor: pointer;
+    /* ----- 顶部导航栏 (Navbar) ----- */
+    .top-navbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 70px;
+        background: rgba(255, 255, 255, 0.9); /* 半透明白 */
+        backdrop-filter: blur(12px); /* 毛玻璃特效 */
+        border-bottom: 1px solid #e2e8f0;
+        z-index: 9999;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        border-radius: 8px;
-        transition: all 0.2s;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
+        padding: 0 40px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
     }
     
-    /* 隐藏 Webkit 默认三角 */
-    summary::-webkit-details-marker {
-        display: none;
-    }
-    
-    /* 悬停效果 */
-    summary:hover {
-        background-color: #e2e8f0;
+    /* 左侧：Logo */
+    .navbar-logo {
+        font-size: 1.5rem;
+        font-weight: 800;
         color: #0f172a;
-    }
-    
-    /* 自定义旋转箭头 */
-    summary::after {
-        content: '+';
-        font-size: 1.1rem;
-        font-weight: 400;
-        transition: transform 0.3s;
-    }
-    
-    /* 展开时的样式 */
-    details[open] summary {
-        color: #4f46e5; /* Indigo */
-    }
-    
-    details[open] summary::after {
-        transform: rotate(45deg); /* 旋转成 X */
-    }
-    
-    /* 4. 子菜单内容区域 */
-    .nav-content {
-        padding: 5px 0 5px 10px; /* 缩进效果 */
-        border-left: 2px solid #e2e8f0;
-        margin-left: 12px;
-        animation: slideDown 0.3s ease-out;
-    }
-    
-    @keyframes slideDown {
-        from { opacity: 0; transform: translateY(-5px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    
-    /* 5. 链接按钮样式 */
-    .nav-link {
         display: flex;
         align-items: center;
-        text-decoration: none;
-        color: #475569;
-        padding: 8px 12px;
-        margin-bottom: 2px;
-        border-radius: 6px;
-        font-size: 0.9rem;
-        font-weight: 500;
-        transition: all 0.15s;
+        gap: 10px;
     }
-    
-    .nav-link:hover {
-        background-color: #eff6ff;
-        color: #4f46e5;
-        transform: translateX(3px);
-    }
-    
-    .nav-icon {
-        margin-right: 10px;
-        font-size: 1rem;
-        width: 20px;
-        text-align: center;
-    }
-    
-    /* 用户卡片 */
-    .user-profile {
-        margin-top: 30px;
-        padding: 15px;
-        border-top: 1px solid #e2e8f0;
-        display: flex;
-        align-items: center;
-    }
-    .avatar {
-        width: 32px;
-        height: 32px;
-        background-color: #4f46e5;
+    .logo-icon {
+        width: 36px;
+        height: 36px;
+        background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
+        border-radius: 8px;
         color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+    
+    /* 中间：导航链接 (图片/图标风格) */
+    .nav-links {
+        display: flex;
+        gap: 30px;
+        height: 100%;
+    }
+    
+    .nav-item {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        height: 100%;
+        color: #64748b;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+        border-bottom: 2px solid transparent;
+    }
+    
+    .nav-item:hover {
+        color: #4f46e5;
+    }
+    
+    /* 激活状态模拟 */
+    .nav-item.active {
+        color: #0f172a;
+        border-bottom: 2px solid #4f46e5;
+    }
+    
+    /* 导航图标 */
+    .nav-img {
+        font-size: 1.2rem;
+        filter: grayscale(100%);
+        transition: filter 0.2s;
+    }
+    .nav-item:hover .nav-img,
+    .nav-item.active .nav-img {
+        filter: grayscale(0%);
+    }
+    
+    /* 右侧：用户区域 */
+    .user-area {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    .user-avatar {
+        width: 36px;
+        height: 36px;
+        background-color: #f1f5f9;
+        color: #475569;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: bold;
-        font-size: 0.8rem;
-        margin-right: 10px;
+        border: 2px solid #fff;
+        box-shadow: 0 0 0 2px #e2e8f0;
+    }
+    .search-bar {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        color: #64748b;
+        width: 200px;
     }
     
-    /* 结果卡片美化 */
+    /* ----- 布局调整 ----- */
+    /* 因为 Navbar 是 fixed 的，主内容需要下移，否则会被遮挡 */
+    .main .block-container {
+        padding-top: 50px !important; 
+    }
+    
+    /* 卡片美化 */
     .metric-card {
         background: white; border: 1px solid #f1f5f9; border-radius: 12px;
         padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
         text-align: center;
     }
-    .metric-value {
-        font-size: 2.2rem; font-weight: 800; color: #0f172a;
-    }
+    .metric-value { font-size: 2.2rem; font-weight: 800; color: #0f172a; }
     .highlight { color: #4f46e5; }
-    </style>
-""")
-st.markdown(css_code, unsafe_allow_html=True)
+</style>
+""", unsafe_allow_html=True)
 
-# -------------------------- 2. 侧边栏渲染 (使用 HTML Details) --------------------------
-def render_collapsible_sidebar():
-    with st.sidebar:
-        # 1. 标题
-        st.markdown("""
-        <div style="padding: 10px 10px 20px 10px;">
-            <h2 style="margin:0; font-size:1.4rem; color:#0f172a;">
-                Wealth<span style="color:#4f46e5">Rank</span>
-            </h2>
-            <p style="margin:0; font-size:0.8rem; color:#64748b;">Global Wealth Tracker</p>
+# -------------------------- 2. 渲染顶部导航栏 --------------------------
+def render_top_navbar():
+    navbar_html = textwrap.dedent("""
+    <nav class="top-navbar">
+        <div class="navbar-logo">
+            <div class="logo-icon">W</div>
+            WealthRank
         </div>
-        """, unsafe_allow_html=True)
         
-        # 2. 折叠菜单 (使用 textwrap.dedent 确保不显示源码)
-        # details[open] 表示默认展开，去掉 [open] 则默认折叠
-        menu_html = textwrap.dedent("""
-            <div class="nav-container">
-            
-                <details open>
-                    <summary>Platform</summary>
-                    <div class="nav-content">
-                        <a href="#" class="nav-link">
-                            <span class="nav-icon">📊</span> Dashboard
-                        </a>
-                        <a href="#" class="nav-link">
-                            <span class="nav-icon">🌍</span> Global Map
-                        </a>
-                        <a href="#" class="nav-link">
-                            <span class="nav-icon">📈</span> Trends
-                        </a>
-                    </div>
-                </details>
-                
-                <details>
-                    <summary>Tools</summary>
-                    <div class="nav-content">
-                        <a href="#" class="nav-link">
-                            <span class="nav-icon">🧮</span> Calculator
-                        </a>
-                        <a href="#" class="nav-link">
-                            <span class="nav-icon">📑</span> Reports
-                        </a>
-                        <a href="#" class="nav-link">
-                            <span class="nav-icon">⚖️</span> Comparison
-                        </a>
-                    </div>
-                </details>
-                
-                <details>
-                    <summary>Account</summary>
-                    <div class="nav-content">
-                        <a href="#" class="nav-link">
-                            <span class="nav-icon">💎</span> Upgrade Plan
-                        </a>
-                        <a href="#" class="nav-link">
-                            <span class="nav-icon">⚙️</span> Settings
-                        </a>
-                        <a href="#" class="nav-link">
-                            <span class="nav-icon">🔒</span> Privacy
-                        </a>
-                    </div>
-                </details>
-
-                <div class="user-profile">
-                    <div class="avatar">A</div>
-                    <div style="font-size:0.85rem; color:#334155; font-weight:600;">
-                        Admin User
-                        <div style="font-size:0.7rem; color:#94a3b8; font-weight:400;">Pro License</div>
-                    </div>
-                </div>
-                
-            </div>
-        """)
+        <div class="nav-links">
+            <a href="#" class="nav-item active">
+                <span class="nav-img">📊</span> Dashboard
+            </a>
+            <a href="#" class="nav-item">
+                <span class="nav-img">🌍</span> Global Map
+            </a>
+            <a href="#" class="nav-item">
+                <span class="nav-img">🧮</span> Calculator
+            </a>
+            <a href="#" class="nav-item">
+                <span class="nav-img">📑</span> Reports
+            </a>
+        </div>
         
-        st.markdown(menu_html, unsafe_allow_html=True)
+        <div class="user-area">
+            <div class="search-bar">🔍 Search assets...</div>
+            <div class="user-avatar">JD</div>
+        </div>
+    </nav>
+    """)
+    st.markdown(navbar_html, unsafe_allow_html=True)
 
-# -------------------------- 3. 逻辑与数据 (保持不变) --------------------------
+# -------------------------- 3. 逻辑与数据 (保持稳定) --------------------------
 TRANSLATIONS = {
-    "English": {"title": "WealthRank Global", "subtitle": "Real-time wealth distribution estimator.", "location": "Location", "income": "Annual Income", "wealth": "Net Worth", "btn_calc": "Calculate Position", "card_income": "Income Level", "card_wealth": "Wealth Status", "rank_prefix": "Nationwide", "rank_approx": "≈ Rank #", "disclaimer": "Based on Log-Normal Distribution Model"},
-    "中文": {"title": "财富金字塔段位", "subtitle": "个人财富实时排名系统", "location": "居住国家", "income": "税前年收入", "wealth": "家庭净资产", "btn_calc": "查看我的排名", "card_income": "年收入水平", "card_wealth": "资产水平", "rank_prefix": "超过所选国家", "rank_approx": "≈ 绝对排名 第", "disclaimer": "基于对数正态分布模型估算"}
+    "English": {"title": "Global Wealth Position", "subtitle": "Real-time wealth distribution estimator.", "location": "Location", "income": "Annual Income", "wealth": "Net Worth", "btn_calc": "Calculate Position", "card_income": "Income Level", "card_wealth": "Wealth Status", "rank_prefix": "Nationwide", "rank_approx": "≈ Rank #", "disclaimer": "Based on Log-Normal Distribution Model"},
+    "中文": {"title": "全球财富金字塔", "subtitle": "个人财富实时排名系统", "location": "居住国家", "income": "税前年收入", "wealth": "家庭净资产", "btn_calc": "查看我的排名", "card_income": "年收入水平", "card_wealth": "资产水平", "rank_prefix": "超过所选国家", "rank_approx": "≈ 绝对排名 第", "disclaimer": "基于对数正态分布模型估算"}
 }
 
 COUNTRY_DATA = {
@@ -318,8 +260,11 @@ def render_metric_card(t, amount, currency, percentile, rank, color, lang_key):
 
 # -------------------------- 4. 主程序入口 --------------------------
 def main():
-    # 渲染侧边栏
-    render_collapsible_sidebar()
+    # 渲染顶部导航
+    render_top_navbar()
+    
+    # 增加一点顶部间距，给 Navbar 留空间
+    st.markdown("<br>", unsafe_allow_html=True)
     
     # 语言选择
     c_head, c_lang = st.columns([5, 1])
@@ -327,13 +272,13 @@ def main():
         lang = st.selectbox("Language", ["English", "中文"], label_visibility="collapsed")
     text = TRANSLATIONS[lang]
     
-    # 标题
+    # 页面主标题
     with c_head:
         st.markdown(f"# {text['title']}")
         st.markdown(f"<p style='color:#64748b; margin-top:-15px;'>{text['subtitle']}</p>", unsafe_allow_html=True)
-    st.markdown("---")
     
-    # 输入
+    # 核心功能区
+    st.markdown("---")
     c1, c2, c3 = st.columns(3)
     with c1:
         country_code = st.selectbox(text['location'], options=COUNTRY_DATA.keys(), format_func=lambda x: COUNTRY_DATA[x]["name_zh"] if lang == "中文" else COUNTRY_DATA[x]["name_en"])
