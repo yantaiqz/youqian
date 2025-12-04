@@ -11,7 +11,7 @@ st.set_page_config(
     page_title="WealthRank 财富排行榜",
     page_icon="🌍",
     layout="centered",
-    initial_sidebar_state="expanded" # 默认展开侧边栏以便看到效果
+    initial_sidebar_state="expanded" 
 )
 
 # -------------------------- 1. CSS 魔法 (导航核心) --------------------------
@@ -22,7 +22,7 @@ st.markdown("""
     h1 { font-weight: 800 !important; color: #0f172a; }
     
     /* 隐藏 Streamlit 默认的顶部装饰条 */
-    # header {visibility: hidden;}
+    header {visibility: hidden;}
     
     /* ----- 1. 导航容器样式 ----- */
     .nav-container {
@@ -154,22 +154,13 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-# -------------------------- 1. 样式与配置 --------------------------
+# -------------------------- 1. 样式与配置 (补充) --------------------------
 st.markdown("""
 <style>
-    .stApp { background-color: #ffffff; color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
-    h1 { font-weight: 800 !important; letter-spacing: -0.05rem; color: #0f172a; }
-    
     .stSelectbox div[data-baseweb="select"] > div,
     .stNumberInput div[data-baseweb="input"] > div {
         border-radius: 8px; border: 1px solid #e2e8f0; background-color: #f8fafc;
     }
-    
-    div.stButton > button {
-        background-color: #4f46e5; color: white; border: none; border-radius: 8px;
-        font-weight: 600; padding: 0.5rem 1rem; transition: all 0.2s; width: 100%;
-    }
-    div.stButton > button:hover { background-color: #4338ca; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2); }
     
     .metric-card {
         background-color: white; border: 1px solid #f1f5f9; border-radius: 12px;
@@ -180,9 +171,6 @@ st.markdown("""
     .metric-value { font-size: 2.2rem; font-weight: 800; color: #0f172a; margin: 8px 0; }
     .metric-sub { font-size: 0.9rem; color: #475569; }
     .highlight { color: #4f46e5; font-weight: 700; }
-    
-    div[data-testid="stRadio"] > label { display: none; }
-    div[data-testid="stRadio"] > div { flex-direction: row; gap: 10px; justify-content: flex-end; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -227,11 +215,8 @@ COUNTRY_DATA = {
 COUNTER_FILE = "visit_stats.json"
 
 def update_daily_visits():
-    """安全更新访问量，如果出错则返回 0，绝不让程序崩溃"""
     try:
         today_str = datetime.date.today().isoformat()
-        
-        # 1. 检查 Session，防止刷新页面重复计数
         if "has_counted" in st.session_state:
             if os.path.exists(COUNTER_FILE):
                 try:
@@ -240,10 +225,7 @@ def update_daily_visits():
                 except:
                     return 0
             return 0
-
-        # 2. 读取或初始化数据
         data = {"date": today_str, "count": 0}
-        
         if os.path.exists(COUNTER_FILE):
             try:
                 with open(COUNTER_FILE, "r") as f:
@@ -251,20 +233,13 @@ def update_daily_visits():
                     if file_data.get("date") == today_str:
                         data = file_data
             except:
-                pass # 文件损坏则从0开始
-        
-        # 3. 计数 +1
+                pass
         data["count"] += 1
-        
-        # 4. 写入文件 (最容易报错的地方，加了try保护)
         with open(COUNTER_FILE, "w") as f:
             json.dump(data, f)
-        
         st.session_state["has_counted"] = True
         return data["count"]
-        
     except Exception as e:
-        # 如果发生任何错误（如权限不足），静默失败，不影响页面显示
         return 0
 
 # -------------------------- 3. 核心计算逻辑 --------------------------
@@ -309,8 +284,6 @@ def draw_sparkline(percentile, color):
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1.1)
     ax.axis('off')
-    
-    # 显式关闭图表防止内存占用
     plt.close(fig) 
     return fig
 
@@ -337,45 +310,43 @@ def render_metric_card(t, amount, currency, percentile, rank, color, lang_key):
     st.pyplot(draw_sparkline(percentile, color), use_container_width=True)
 
 
-# -------------------------- 4. 侧边栏导航 (HTML注入) --------------------------
+# -------------------------- 4. 侧边栏导航 (关键修正位置) --------------------------
 def render_sidebar_nav():
     with st.sidebar:
-        # 这里是核心：注入 HTML 导航结构
-        # 由于 Streamlit 刷新机制，这里的 href="#" 只是示例，实际项目中通常不做页面跳转
-        # 或者是跳转到 ?page=xxx
-   
+        # ⚠️ 注意：下面的 HTML 字符串必须紧贴左侧，不能有缩进！
+        # 如果有缩进，Markdown 会把它解析成“代码块”而非 HTML
         st.markdown("""
-        <div class="nav-container">
-            <input type="checkbox" id="nav-toggle">
-            
-            <label for="nav-toggle" class="nav-label">
-                <div class="icon-box">
-                    <span class="line line-1"></span>
-                    <span class="line line-2"></span>
-                    <span class="line line-3"></span>
-                </div>
-                Menu / Navigation
-            </label>
-            
-            <div class="menu-content">
-                <a href="#" class="nav-btn">📊 Dashboard <span class="nav-badge">Home</span></a>
-                <a href="#" class="nav-btn">🌍 Global Maps</a>
-                <a href="#" class="nav-btn">💰 Wealth Calculator</a>
-                <a href="#" class="nav-btn">📈 Trends Analysis</a>
-                <a href="#" class="nav-btn">📄 Reports</a>
-                <a href="#" class="nav-btn">⚙️ Settings</a>
-                <a href="#" class="nav-btn">💎 Premium Plan</a>
-                <a href="#" class="nav-btn">👤 User Profile</a>
-            </div>
+<div class="nav-container">
+    <input type="checkbox" id="nav-toggle">
+    
+    <label for="nav-toggle" class="nav-label">
+        <div class="icon-box">
+            <span class="line line-1"></span>
+            <span class="line line-2"></span>
+            <span class="line line-3"></span>
         </div>
-        """, unsafe_allow_html=True)
+        Menu / Navigation
+    </label>
+    
+    <div class="menu-content">
+        <a href="#" class="nav-btn">📊 Dashboard <span class="nav-badge">Home</span></a>
+        <a href="#" class="nav-btn">🌍 Global Maps</a>
+        <a href="#" class="nav-btn">💰 Wealth Calculator</a>
+        <a href="#" class="nav-btn">📈 Trends Analysis</a>
+        <a href="#" class="nav-btn">📄 Reports</a>
+        <a href="#" class="nav-btn">⚙️ Settings</a>
+        <a href="#" class="nav-btn">💎 Premium Plan</a>
+        <a href="#" class="nav-btn">👤 User Profile</a>
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
         st.markdown("<br>", unsafe_allow_html=True)
         st.info("💡 提示：点击上方的 Menu 体验弹性动画与图标变形效果。")
 
 
 
-# -------------------------- 4. 主程序入口 --------------------------
+# -------------------------- 5. 主程序入口 --------------------------
 def main():
     render_sidebar_nav()
     
@@ -425,7 +396,6 @@ def main():
     """, unsafe_allow_html=True)
 
 
-    # -------- 每日访问统计 (即使报错也不崩溃) --------
     daily_visits = update_daily_visits()
     visit_text = f"Daily Visits: {daily_visits}" if selected_lang == "English" else f"今日访问: {daily_visits}"
     
@@ -434,8 +404,6 @@ def main():
         {visit_text}
     </div>
     """, unsafe_allow_html=True)
-    
 
-# -------------------------- 5. 必须包含此入口！ --------------------------
 if __name__ == "__main__":
     main()
