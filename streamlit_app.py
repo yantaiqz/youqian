@@ -342,17 +342,37 @@ def render_sidebar_nav():
         # 这里是核心：注入 HTML 导航结构
         # 由于 Streamlit 刷新机制，这里的 href="#" 只是示例，实际项目中通常不做页面跳转
         # 或者是跳转到 ?page=xxx
+   
+        st.markdown("""
+        <div class="nav-container">
+            <input type="checkbox" id="nav-toggle">
+            
+            <label for="nav-toggle" class="nav-label">
+                <div class="icon-box">
+                    <span class="line line-1"></span>
+                    <span class="line line-2"></span>
+                    <span class="line line-3"></span>
+                </div>
+                Menu / Navigation
+            </label>
+            
+            <div class="menu-content">
+                <a href="#" class="nav-btn">📊 Dashboard <span class="nav-badge">Home</span></a>
+                <a href="#" class="nav-btn">🌍 Global Maps</a>
+                <a href="#" class="nav-btn">💰 Wealth Calculator</a>
+                <a href="#" class="nav-btn">📈 Trends Analysis</a>
+                <a href="#" class="nav-btn">📄 Reports</a>
+                <a href="#" class="nav-btn">⚙️ Settings</a>
+                <a href="#" class="nav-btn">💎 Premium Plan</a>
+                <a href="#" class="nav-btn">👤 User Profile</a>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
-        # ===== 诊断代码 (临时使用) =====
-        st.title("✅ 侧边栏工作正常")
-        st.write("如果看到这行文字，说明侧边栏容器没问题。")
-        # =============================
-        
-        # 原有的 HTML 注入代码请暂时注释或删除
-        # st.markdown(""" <div class="nav-container"> ... """, unsafe_allow_html=True)
-        # st.markdown("<br>", unsafe_allow_html=True)
-        # st.info("💡 提示：...")
-        pass # 保持此处内容简单，方便测试
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.info("💡 提示：点击上方的 Menu 体验弹性动画与图标变形效果。")
+
+
 
 # -------------------------- 4. 主程序入口 --------------------------
 def main():
