@@ -12,7 +12,8 @@ st.set_page_config(
     page_title="WealthRank Pro",
     page_icon="💎",
     layout="wide", # 必须是 wide 布局
-    initial_sidebar_state="collapsed" # 默认收起侧边栏（实际上我们要隐藏它）
+#    initial_sidebar_state="collapsed" # 默认收起侧边栏（实际上我们要隐藏它）
+    initial_sidebar_state="extended" # 默认收起侧边栏（实际上我们要隐藏它）
 )
 
 # -------------------------- 1. CSS 样式 (顶部导航核心) --------------------------
