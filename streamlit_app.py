@@ -26,8 +26,8 @@ st.markdown("""
     }
     
     /* 隐藏 Streamlit 默认的顶部红线和汉堡菜单 */
-    header {visibility: hidden;}
-    [data-testid="stSidebar"] {display: none;} /* 彻底隐藏侧边栏 */
+  #  header {visibility: hidden;}
+  #  [data-testid="stSidebar"] {display: none;} /* 彻底隐藏侧边栏 */
     
     /* ----- 顶部导航栏 (Navbar) ----- */
     .top-navbar {
