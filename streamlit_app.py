@@ -275,4 +275,24 @@ def main():
                     font-size: 1rem;
                 }
                 div.stButton > button:hover {
-                    background-color: #33415
+                    background-color: #334155;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                }
+            </style>
+            """, unsafe_allow_html=True)
+            
+            if st.button(text['btn_calc'], type="primary"):
+                inc_pct = get_log_normal_percentile(income, country["medianIncome"], country["incomeGini"])
+                wlh_pct = get_log_normal_percentile(wealth, country["medianWealth"], country["wealthGini"])
+                inc_rank = max(1, math.floor(country["population"] * (1 - inc_pct)))
+                wlh_rank = max(1, math.floor(country["population"] * (1 - wlh_pct)))
+                
+                st.markdown("<br>", unsafe_allow_html=True)
+                r1, r2 = st.columns(2)
+                with r1: render_metric_card(text, income, country["currency"], inc_pct, inc_rank, "#6366f1", lang)
+                with r2: render_metric_card(text, wealth, country["currency"], wlh_pct, wlh_rank, "#a855f7", lang)
+            
+            st.markdown(f"<div style='text-align:center; color:#9ca3af; font-size:0.8rem; margin-top:40px;'>{text['disclaimer']}</div>", unsafe_allow_html=True)
+
+if __name__ == "__main__":
+    main()
