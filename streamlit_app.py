@@ -14,7 +14,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"  # 隐藏原生侧边栏
 )
 
-# -------------------------- 1. 核心样式 (优化版底部导航) --------------------------
+# -------------------------- 1. 核心样式 (优化版底部导航 + 卡片布局) --------------------------
 st.markdown("""
 <style>
     /* 1. 彻底隐藏Streamlit默认干扰元素 */
@@ -24,9 +24,9 @@ st.markdown("""
     
     /* 2. 全局样式重置 */
     .stApp {
-        background-color: #f8fafc !important;
+        background-color: #f8fafc !important; /* 浅灰背景 */
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
-        padding-bottom: 75px !important; /* 适配新导航高度 */
+        padding-bottom: 90px !important; /* 适配新导航高度，多留一点空间 */
         margin: 0 !important;
     }
     
@@ -37,13 +37,14 @@ st.markdown("""
         left: 0 !important;
         width: 100% !important;
         height: 70px !important;
-        background-color: #ffffff !important;
+        background-color: rgba(255, 255, 255, 0.95) !important; /* 微透明 */
+        backdrop-filter: blur(10px) !important;
         border-top: 1px solid #eef2f7 !important;
         display: flex !important;
         align-items: center !important;
         justify-content: space-between !important;
         padding: 0 2rem !important;
-        box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.03) !important;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.02) !important;
         z-index: 9999 !important;
         box-sizing: border-box !important;
     }
@@ -54,81 +55,110 @@ st.markdown("""
         flex-direction: column !important;
         align-items: center !important;
         justify-content: center !important;
-        gap: 3px !important;
-        width: 12.5% !important; /* 8个均分 */
+        gap: 4px !important;
+        width: 12.5% !important; 
         height: 100% !important;
-        color: #818b98 !important;
+        color: #94a3b8 !important;
         text-decoration: none !important;
-        font-size: 0.7rem !important;
+        font-size: 0.65rem !important;
         font-weight: 500 !important;
         transition: all 0.2s ease !important;
         position: relative !important;
     }
     
-    /* 激活态样式 - 极简高亮 */
+    /* 激活态样式 */
     .nav-item.active {
-        color: #3b82f6 !important; /* 现代蓝主色 */
+        color: #3b82f6 !important; 
     }
-    
-    /* 激活态指示器 - 小圆点替代下划线 */
     .nav-item.active::before {
         content: '' !important;
         position: absolute !important;
-        top: 8px !important;
+        top: 6px !important;
         width: 4px !important;
         height: 4px !important;
         border-radius: 50% !important;
         background-color: #3b82f6 !important;
     }
-    
-    /* 图标样式优化 */
     .nav-icon {
-        font-size: 1.1rem !important;
-        margin-bottom: 1px !important;
+        font-size: 1.2rem !important;
+        margin-bottom: 2px !important;
     }
-    
-    /* hover效果 */
     .nav-item:hover {
-        color: #5294ff !important;
+        color: #64748b !important;
     }
     
     /* 6. 主内容区样式 */
     .main-content {
-        padding: 2rem 2rem 1rem 2rem !important;
-        max-width: 800px !important; /* 限制最大宽度以优化大屏体验 */
+        padding: 2rem 1.5rem 1rem 1.5rem !important;
+        max-width: 900px !important; 
         margin: 0 auto !important;
         box-sizing: border-box !important;
     }
+
+    /* 标题样式 */
+    .page-title {
+        font-size: 2rem !important;
+        font-weight: 800 !important;
+        color: #1e293b !important;
+        letter-spacing: -0.02em !important;
+        margin-bottom: 0.5rem !important;
+    }
+    .page-subtitle {
+        color: #64748b !important;
+        font-size: 1rem !important;
+        margin-bottom: 2rem !important;
+        font-weight: 400 !important;
+    }
+
+    /* 通用卡片容器样式 */
+    .content-card {
+        background: #ffffff !important;
+        border-radius: 16px !important;
+        padding: 24px !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02) !important;
+        border: 1px solid #f1f5f9 !important;
+        margin-bottom: 24px !important;
+    }
     
-    /* 7. 按钮/卡片样式优化 */
-    div.stButton > button {
-        background-color: #3b82f6 !important; 
-        color: white !important; 
-        border-radius: 6px !important; 
-        padding: 0.6rem 1rem !important;
-        font-weight: 500 !important;
-        border: none !important;
-        width: 100% !important;
-        transition: background 0.2s ease !important;
-        box-shadow: 0 1px 2px rgba(59, 130, 246, 0.1) !important;
-    }
-    div.stButton > button:hover {
-        background-color: #2563eb !important;
-    }
-    div.stButton > button:active {
-        background-color: #1d4ed8 !important;
-    }
-    
+    /* 结果指标卡片特别样式 */
     .metric-card {
         background: white !important; 
         border: 1px solid #eef2f7 !important; 
-        border-radius: 8px !important; 
-        padding: 20px !important; 
+        border-radius: 16px !important; 
+        padding: 24px !important; 
         text-align: center !important;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.02) !important;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.03), 0 4px 6px -2px rgba(0, 0, 0, 0.02) !important;
         box-sizing: border-box !important;
         width: 100% !important;
-        margin-bottom: 15px;
+        height: 100% !important;
+        transition: transform 0.2s ease !important;
+    }
+    .metric-card:hover {
+        transform: translateY(-2px) !important;
+    }
+
+    /* 按钮优化 */
+    div.stButton > button {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+        color: white !important; 
+        border-radius: 10px !important; 
+        padding: 0.7rem 1.5rem !important;
+        font-weight: 600 !important;
+        border: none !important;
+        width: 100% !important;
+        box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2) !important;
+        transition: all 0.2s !important;
+    }
+    div.stButton > button:hover {
+        box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3) !important;
+        transform: translateY(-1px) !important;
+    }
+    
+    /* 输入框Label微调 */
+    .stSelectbox label, .stNumberInput label {
+        color: #475569 !important;
+        font-weight: 500 !important;
+        font-size: 0.9rem !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -224,17 +254,19 @@ def render_bottom_nav():
 # -------------------------- 4. 业务逻辑与数据 --------------------------
 TRANSLATIONS = {
     "English": {
-        "title": "Global Wealth Pyramid", "subtitle": "Where do you stand in the global economy?", 
-        "location": "Your Location", "income": "Annual Income", "wealth": "Net Worth", 
-        "btn_calc": "Analyze My Position", "card_income": "Income Level", "card_wealth": "Wealth Status", 
-        "rank_prefix": "Nationwide", "rank_approx": "Rank #", 
+        "title": "Wealth Pyramid", "subtitle": "Where do you stand globally?", 
+        "section_input": "Your Profile", "section_result": "Analysis Result",
+        "location": "Location", "income": "Annual Income", "wealth": "Net Worth", 
+        "btn_calc": "Update Analysis", "card_income": "Income Level", "card_wealth": "Wealth Status", 
+        "rank_prefix": "Top", "rank_approx": "Rank #", 
         "disclaimer": "Estimations based on Log-Normal Distribution Model"
     },
     "中文": {
         "title": "全球财富金字塔", "subtitle": "你的财富在全球处于什么段位？", 
+        "section_input": "基本信息", "section_result": "分析报告",
         "location": "居住国家", "income": "税前年收入", "wealth": "家庭净资产", 
-        "btn_calc": "生成分析报告", "card_income": "年收入水平", "card_wealth": "资产水平", 
-        "rank_prefix": "超过所选国家", "rank_approx": "绝对排名 第", 
+        "btn_calc": "重新计算", "card_income": "年收入水平", "card_wealth": "资产水平", 
+        "rank_prefix": "前", "rank_approx": "绝对排名 第", 
         "disclaimer": "基于对数正态分布模型估算"
     }
 }
@@ -268,10 +300,9 @@ def format_compact_localized(num, lang_key):
 
 def render_metric_card(t, amount, currency, percentile, rank, color, lang_key):
     top_percent = (1 - percentile) * 100
-    rank_str = f"Top {top_percent:.1f}%" if lang_key != "中文" else f"前 {top_percent:.1f}%"
+    rank_str = f"{t['rank_prefix']} {top_percent:.1f}%"
     
-    # 绘制小图表
-    chart_html = ""
+    # 绘制小图表 - 优化比例和边距
     try:
         x = np.linspace(-3, 3, 50)
         y = np.exp(-0.5 * x**2)
@@ -281,13 +312,19 @@ def render_metric_card(t, amount, currency, percentile, rank, color, lang_key):
         marker_x = percentile
         marker_y = np.exp(-0.5 * simulated_z**2)
         
-        fig, ax = plt.subplots(figsize=(5, 1.2)) # 调整尺寸
+        fig, ax = plt.subplots(figsize=(5, 1.5)) # 增加高度让图表更舒展
         fig.patch.set_alpha(0)
         ax.patch.set_alpha(0)
-        ax.fill_between(chart_x, chart_y, color=color, alpha=0.15)
-        ax.plot(chart_x, chart_y, color=color, linewidth=1.5)
-        ax.scatter([marker_x], [marker_y], color=color, s=50, edgecolor='white', linewidth=1.5, zorder=5)
+        # 填充颜色
+        ax.fill_between(chart_x, chart_y, color=color, alpha=0.1)
+        # 线条颜色
+        ax.plot(chart_x, chart_y, color=color, linewidth=2)
+        # 标记点
+        ax.scatter([marker_x], [marker_y], color=color, s=80, edgecolor='white', linewidth=2, zorder=5)
+        
+        # 移除坐标轴但保留底部留白以防截断
         ax.axis('off')
+        plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
         
         # 将plot转为Streamlit对象
         st.pyplot(fig, use_container_width=True, transparent=True)
@@ -295,22 +332,24 @@ def render_metric_card(t, amount, currency, percentile, rank, color, lang_key):
     except:
         pass
 
-    # 文字信息
+    # 文字信息 - 优化排版
     st.markdown(f"""
-    <div style="margin-top: -10px;">
-        <div style="font-size: 1.8rem; font-weight: 700; color: #1e293b; line-height: 1.2;">
-            {currency} {format_compact_localized(amount, lang_key)}
+    <div style="margin-top: -5px; padding: 0 10px;">
+        <div style="font-size: 2rem; font-weight: 700; color: #0f172a; line-height: 1.1; margin-bottom: 12px;">
+            <span style="font-size: 1.2rem; color: #64748b; font-weight: 600; margin-right: 4px;">{currency}</span>{format_compact_localized(amount, lang_key)}
         </div>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
-            <div style="font-size: 0.85rem; color: #64748b;">
-                {t['rank_prefix']}
+        
+        <div style="background-color: #f8fafc; border-radius: 8px; padding: 12px; margin-top: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <span style="font-size: 0.85rem; color: #64748b;">排名百分比</span>
+                <span style="color: {color}; font-weight: 700; font-size: 1.1rem;">{rank_str}</span>
             </div>
-            <div style="color: {color}; font-weight: 700; font-size: 1.1rem; background: {color}15; padding: 2px 8px; border-radius: 4px;">
-                {rank_str}
+            <div style="width: 100%; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
+                <div style="width: {(percentile * 100)}%; height: 100%; background: {color}; border-radius: 3px;"></div>
             </div>
-        </div>
-        <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 4px; text-align: right;">
-             {t['rank_approx']} {format_compact_localized(rank, lang_key)}
+            <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 8px; text-align: right;">
+                 {t['rank_approx']} {format_compact_localized(rank, lang_key)}
+            </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -322,48 +361,50 @@ def main():
     st.markdown('<div class="main-content">', unsafe_allow_html=True)
     
     # --- 头部区域 ---
-    h_col, l_col = st.columns([5, 2])
+    h_col, l_col = st.columns([3, 1])
     with l_col:
-        # 默认选中 "中文" (index 0)
+        # 放到右侧且垂直居中
+        st.markdown("<div style='height: 10px'></div>", unsafe_allow_html=True)
         lang = st.selectbox("Language", ["中文", "English"], label_visibility="collapsed")
     
     text = TRANSLATIONS[lang]
     
     with h_col:
-        st.markdown(f"<h1 style='margin-top:0; font-size: 1.8rem; font-weight: 700; color: #1e293b; letter-spacing: -0.5px;'>{text['title']}</h1>", unsafe_allow_html=True)
-        st.markdown(f"<p style='color:#64748b; font-size:0.95rem; margin-top:-10px; margin-bottom: 20px;'>{text['subtitle']}</p>", unsafe_allow_html=True)
+        st.markdown(f"<div class='page-title'>{text['title']}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='page-subtitle'>{text['subtitle']}</div>", unsafe_allow_html=True)
     
-    # --- 输入区域 ---
-    # 使用 container 包裹增加一点间距
-    with st.container():
-        c1, c2, c3 = st.columns(3)
-        with c1:
-            country_code = st.selectbox(
-                text['location'], 
-                options=COUNTRY_DATA.keys(), 
-                format_func=lambda x: COUNTRY_DATA[x]["name_zh"] if lang == "中文" else COUNTRY_DATA[x]["name_en"]
-            )
-            country = COUNTRY_DATA[country_code]
-        with c2:
-            income = st.number_input(text['income'], value=int(country["medianIncome"]), step=1000)
-        with c3:
-            wealth = st.number_input(text['wealth'], value=int(country["medianWealth"]), step=5000)
-
+    # --- 第一部分：输入区域 (包裹在白色卡片中) ---
+    st.markdown(f"<div style='font-weight:600; color:#334155; margin-bottom:12px; font-size:0.95rem;'>1. {text['section_input']}</div>", unsafe_allow_html=True)
+    st.markdown('<div class="content-card">', unsafe_allow_html=True)
+    
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        country_code = st.selectbox(
+            text['location'], 
+            options=COUNTRY_DATA.keys(), 
+            format_func=lambda x: COUNTRY_DATA[x]["name_zh"] if lang == "中文" else COUNTRY_DATA[x]["name_en"]
+        )
+        country = COUNTRY_DATA[country_code]
+    with c2:
+        income = st.number_input(text['income'], value=int(country["medianIncome"]), step=1000)
+    with c3:
+        wealth = st.number_input(text['wealth'], value=int(country["medianWealth"]), step=5000)
+    
+    # 按钮放这里
     st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
+    st.button(text['btn_calc'], type="primary") # 按钮逻辑：点击即刷新，其实Streamlit改变输入框就自动刷新了，这个按钮主要为了心理确认
     
-    # --- 按钮与计算逻辑 ---
-    # 无论是否点击按钮，只要有数据就渲染（满足"首次打开显示图表"需求）
-    # 按钮保留作为视觉确认
-    calc_pressed = st.button(text['btn_calc'], type="primary")
+    st.markdown('</div>', unsafe_allow_html=True) # End content-card
+
     
-    # --- 结果渲染区域 ---
+    # --- 第二部分：结果渲染区域 ---
     # 计算逻辑
     inc_pct = get_log_normal_percentile(income, country["medianIncome"], country["incomeGini"])
     wlh_pct = get_log_normal_percentile(wealth, country["medianWealth"], country["wealthGini"])
     inc_rank = max(1, math.floor(country["population"] * (1 - inc_pct)))
     wlh_rank = max(1, math.floor(country["population"] * (1 - wlh_pct)))
     
-    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown(f"<div style='font-weight:600; color:#334155; margin-bottom:12px; margin-top: 10px; font-size:0.95rem;'>2. {text['section_result']}</div>", unsafe_allow_html=True)
     
     # 使用两列展示结果卡片
     r1, r2 = st.columns(2)
@@ -371,20 +412,19 @@ def main():
     # 收入卡片
     with r1: 
         st.markdown(f"""
-        <div class="metric-card" style="border-top: 3px solid #3b82f6 !important; padding-bottom: 0 !important;">
-            <div style="color: #64748b; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 5px;">
+        <div class="metric-card" style="border-top: 4px solid #3b82f6 !important;">
+            <div style="color: #64748b; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 15px;">
                 {text['card_income']}
             </div>
         """, unsafe_allow_html=True)
-        # 传入绘图逻辑
         render_metric_card(text, income, country["currency"], inc_pct, inc_rank, "#3b82f6", lang)
         st.markdown("</div>", unsafe_allow_html=True)
 
     # 财富卡片
     with r2: 
         st.markdown(f"""
-        <div class="metric-card" style="border-top: 3px solid #6366f1 !important; padding-bottom: 0 !important;">
-            <div style="color: #64748b; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 5px;">
+        <div class="metric-card" style="border-top: 4px solid #6366f1 !important;">
+            <div style="color: #64748b; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 15px;">
                 {text['card_wealth']}
             </div>
         """, unsafe_allow_html=True)
@@ -393,11 +433,9 @@ def main():
     
     # --- 底部统计与声明 ---
     st.markdown(f"""
-    <div style='text-align:center; color:#94a3b8; font-size:0.75rem; margin-top:30px;'>
-        {text['disclaimer']}
-    </div>
-    <div style="text-align: center; color: #cbd5e1; font-size: 0.7rem; margin-top: 10px; padding-bottom: 20px;">
-        {visit_text}
+    <div style='text-align:center; color:#94a3b8; font-size:0.75rem; margin-top:40px; line-height: 1.5;'>
+        {text['disclaimer']}<br>
+        <span style="opacity: 0.7">{visit_text}</span>
     </div>
     """, unsafe_allow_html=True)
     
