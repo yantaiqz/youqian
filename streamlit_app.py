@@ -14,7 +14,6 @@ st.set_page_config(
     initial_sidebar_state="collapsed"  # 隐藏原生侧边栏
 )
 
-# -------------------------- 1. 核心样式 (优化版底部导航 + 卡片布局) --------------------------
 st.markdown("""
 <style>
     /* 1. 彻底隐藏Streamlit默认干扰元素 */
@@ -24,78 +23,75 @@ st.markdown("""
     
     /* 2. 全局样式重置 */
     .stApp {
-        background-color: #f8fafc !important; /* 浅灰背景 */
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
-        padding-bottom: 90px !important; /* 适配新导航高度，多留一点空间 */
+        background-color: #f8fafc !important;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+        padding-bottom: 80px !important; /* 底部留白 */
         margin: 0 !important;
     }
     
-    /* 3. 底部导航核心样式 - 简洁现代风 */
+    /* 3. 底部导航核心样式 - 纯文字现代风 */
     .bottom-nav {
         position: fixed !important;
         bottom: 0 !important;
         left: 0 !important;
         width: 100% !important;
-        height: 70px !important;
-        background-color: rgba(255, 255, 255, 0.95) !important; /* 微透明 */
-        backdrop-filter: blur(10px) !important;
-        border-top: 1px solid #eef2f7 !important;
+        height: 60px !important; /* 高度减小，更精致 */
+        background-color: rgba(255, 255, 255, 0.90) !important;
+        backdrop-filter: blur(16px) !important; /* 加强毛玻璃 */
+        border-top: 1px solid rgba(226, 232, 240, 0.8) !important;
         display: flex !important;
         align-items: center !important;
-        justify-content: space-between !important;
-        padding: 0 2rem !important;
-        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.02) !important;
+        justify-content: space-between !important; /* 均匀分布 */
+        padding: 0 10px !important; /* 减小左右边距以容纳8个词 */
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.03) !important;
         z-index: 9999 !important;
         box-sizing: border-box !important;
     }
     
-    /* 4. 导航项样式 - 8个均分 */
+    /* 4. 导航项样式 - 去掉Icon后的调整 */
     .nav-item {
         display: flex !important;
-        flex-direction: column !important;
         align-items: center !important;
         justify-content: center !important;
-        gap: 4px !important;
-        width: 12.5% !important; 
-        height: 100% !important;
-        color: #94a3b8 !important;
+        width: 100% !important; /* 自动均分 */
+        height: 40px !important; /* 点击热区高度 */
+        color: #94a3b8 !important; /* 默认灰色 */
         text-decoration: none !important;
-        font-size: 0.65rem !important;
-        font-weight: 500 !important;
+        font-size: 0.75rem !important; /* 文字大小 */
+        font-weight: 600 !important; /* 加粗 */
+        letter-spacing: -0.01em !important;
+        border-radius: 8px !important; /* 圆角 */
         transition: all 0.2s ease !important;
-        position: relative !important;
+        margin: 0 2px !important; /* 项与项之间的微小间距 */
     }
     
-    /* 激活态样式 */
-    .nav-item.active {
-        color: #3b82f6 !important; 
-    }
-    .nav-item.active::before {
-        content: '' !important;
-        position: absolute !important;
-        top: 6px !important;
-        width: 4px !important;
-        height: 4px !important;
-        border-radius: 50% !important;
-        background-color: #3b82f6 !important;
-    }
-    .nav-icon {
-        font-size: 1.2rem !important;
-        margin-bottom: 2px !important;
-    }
+    /* 鼠标悬停 */
     .nav-item:hover {
+        background-color: rgba(241, 245, 249, 0.8) !important;
         color: #64748b !important;
     }
     
-    /* 6. 主内容区样式 */
+    /* 激活态样式 - 现代胶囊风格 */
+    .nav-item.active {
+        color: #2563eb !important; /* 亮蓝文字 */
+        background-color: rgba(59, 130, 246, 0.1) !important; /* 浅蓝背景 */
+    }
+    
+    /* 移除之前的伪元素圆点 */
+    .nav-item.active::before {
+        display: none !important;
+    }
+
+    /* --------------------------------------------------- */
+    /* 以下是你原有的其他卡片和容器样式，保持不变或按需微调 */
+    /* --------------------------------------------------- */
+    
     .main-content {
         padding: 2rem 1.5rem 1rem 1.5rem !important;
         max-width: 900px !important; 
         margin: 0 auto !important;
-        box-sizing: border-box !important;
     }
 
-    /* 标题样式 */
     .page-title {
         font-size: 2rem !important;
         font-weight: 800 !important;
@@ -110,17 +106,19 @@ st.markdown("""
         font-weight: 400 !important;
     }
 
-    /* 通用卡片容器样式 */
-    .content-card {
-        background: #ffffff !important;
+    /* 修复后的卡片样式 (结合你上一轮的需求) */
+    [data-testid="stVerticalBlockBorderWrapper"] {
+        background-color: #ffffff !important;
         border-radius: 16px !important;
         padding: 24px !important;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02) !important;
         border: 1px solid #f1f5f9 !important;
-        margin-bottom: 24px !important;
+    }
+    [data-testid="stVerticalBlockBorderWrapper"] > div {
+        padding: 0 !important; 
     }
     
-    /* 结果指标卡片特别样式 */
+    /* 结果指标卡片 */
     .metric-card {
         background: white !important; 
         border: 1px solid #eef2f7 !important; 
@@ -130,14 +128,13 @@ st.markdown("""
         box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.03), 0 4px 6px -2px rgba(0, 0, 0, 0.02) !important;
         box-sizing: border-box !important;
         width: 100% !important;
-        height: 80% !important;
         transition: transform 0.2s ease !important;
     }
     .metric-card:hover {
         transform: translateY(-2px) !important;
     }
 
-    /* 按钮优化 */
+    /* 按钮样式 */
     div.stButton > button {
         background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
         color: white !important; 
@@ -154,27 +151,14 @@ st.markdown("""
         transform: translateY(-1px) !important;
     }
     
-    /* 输入框Label微调 */
     .stSelectbox label, .stNumberInput label {
         color: #475569 !important;
         font-weight: 500 !important;
         font-size: 0.9rem !important;
     }
-
-    [data-testid="stVerticalBlockBorderWrapper"] {
-        background-color: #ffffff !important;
-        border-radius: 16px !important;
-        padding: 24px !important;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02) !important;
-        border: 1px solid #f1f5f9 !important;
-    }
-    
-    /* 微调容器内部间距，防止双重 padding */
-    [data-testid="stVerticalBlockBorderWrapper"] > div {
-        padding: 0 !important; 
-    }
 </style>
 """, unsafe_allow_html=True)
+
 
 # -------------------------- 2. 安全的计数器逻辑 --------------------------
 COUNTER_FILE = "visit_stats.json"
@@ -223,47 +207,40 @@ def update_daily_visits():
 daily_visits = update_daily_visits()
 visit_text = f"今日访问: {daily_visits}"
 
-# -------------------------- 3. 底部导航渲染函数 --------------------------
+
+# -------------------------- 3. 底部导航渲染函数 (无Icon版) --------------------------
 def render_bottom_nav():
-    # 8个导航项
+    # 移除了 icon span，简化了结构
     nav_html = """
     <div class="bottom-nav">
         <a href="#" class="nav-item active" target="_self">
-            <span class="nav-icon">📊</span>
-            <span>Dashboard</span>
+            Dashboard
         </a>
         <a href="#" class="nav-item" target="_self">
-            <span class="nav-icon">🌍</span>
-            <span>Map</span>
+            Map
         </a>
         <a href="#" class="nav-item" target="_self">
-            <span class="nav-icon">🧮</span>
-            <span>Calc</span>
+            Calc
         </a>
         <a href="#" class="nav-item" target="_self">
-            <span class="nav-icon">📈</span>
-            <span>Portfolio</span>
+            Portfolio
         </a>
         <a href="#" class="nav-item" target="_self">
-            <span class="nav-icon">📑</span>
-            <span>Reports</span>
+            Reports
         </a>
         <a href="#" class="nav-item" target="_self">
-            <span class="nav-icon">🔔</span>
-            <span>Alerts</span>
+            Alerts
         </a>
         <a href="#" class="nav-item" target="_self">
-            <span class="nav-icon">⚙️</span>
-            <span>Settings</span>
+            Settings
         </a>
         <a href="#" class="nav-item" target="_self">
-            <span class="nav-icon">👤</span>
-            <span>Profile</span>
+            Profile
         </a>
     </div>
     """
     st.markdown(nav_html, unsafe_allow_html=True)
-
+    
 # -------------------------- 4. 业务逻辑与数据 --------------------------
 TRANSLATIONS = {
     "English": {
