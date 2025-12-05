@@ -338,7 +338,6 @@ def render_metric_card(t, amount, currency, percentile, rank, color, lang_key):
     <div style="font-size: 2rem; font-weight: 700; color: #0f172a; line-height: 1.1; margin-bottom: 12px;">
         <span style="font-size: 1.2rem; color: #64748b; font-weight: 600; margin-right: 4px;">{currency}</span>{format_compact_localized(amount, lang_key)}
     </div>
-    
     <div style="background-color: #f8fafc; border-radius: 8px; padding: 12px; margin-top: 10px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
             <span style="font-size: 0.85rem; color: #64748b;">排名百分比</span>
