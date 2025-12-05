@@ -392,23 +392,22 @@ def main():
         f"<div style='font-weight:600; color:#334155; margin-bottom:12px; font-size:0.95rem;'>1. {text['section_input']}</div>",
         unsafe_allow_html=True
     )
-    
-    # 开始白色卡片
-    st.markdown('<div class="content-card">', unsafe_allow_html=True)
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        country_code = st.selectbox(
-            text['location'], 
-            options=COUNTRY_DATA.keys(), 
-            format_func=lambda x: COUNTRY_DATA[x]["name_zh"] if lang == "中文" else COUNTRY_DATA[x]["name_en"]
-        )
-        country = COUNTRY_DATA[country_code]
-    with c2:
-        income = st.number_input(text['income'], value=int(country["medianIncome"]), step=1000)
-    with c3:
-        wealth = st.number_input(text['wealth'], value=int(country["medianWealth"]), step=5000)
-    st.markdown('</div>', unsafe_allow_html=True) # End content-card
-    
+
+    # 开始白色卡片 (正确写法：使用原生容器 + CSS劫持)
+    with st.container(border=True):
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            country_code = st.selectbox(
+                text['location'], 
+                options=COUNTRY_DATA.keys(), 
+                format_func=lambda x: COUNTRY_DATA[x]["name_zh"] if lang == "中文" else COUNTRY_DATA[x]["name_en"]
+            )
+            country = COUNTRY_DATA[country_code]
+        with c2:
+            income = st.number_input(text['income'], value=int(country["medianIncome"]), step=1000)
+        with c3:
+            wealth = st.number_input(text['wealth'], value=int(country["medianWealth"]), step=5000)
+            
     
     # 按钮放这里
     st.markdown("<div style='height: 15px;'>", unsafe_allow_html=True)
