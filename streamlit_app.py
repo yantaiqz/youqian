@@ -375,7 +375,7 @@ def main():
     
     # --- 第一部分：输入区域 (包裹在白色卡片中) ---
     st.markdown(f"<div style='font-weight:600; color:#334155; margin-bottom:12px; font-size:0.95rem;'>1. {text['section_input']}</div>", unsafe_allow_html=True)
-    st.markdown('<div class="content-card">', unsafe_allow_html=True)
+    #st.markdown('<div class="content-card">', unsafe_allow_html=True)
     
     c1, c2, c3 = st.columns(3)
     with c1:
