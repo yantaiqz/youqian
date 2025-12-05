@@ -124,13 +124,13 @@ st.markdown("""
     .metric-card {
         background: white !important; 
         border: 1px solid #eef2f7 !important; 
-        border-radius: 16px !important; 
-        padding: 16px !important; 
+        border-radius: 8px !important; 
+        padding: 8px !important; 
         text-align: center !important;
         box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.03), 0 4px 6px -2px rgba(0, 0, 0, 0.02) !important;
         box-sizing: border-box !important;
         width: 100% !important;
-        height: 80% !important;
+        height: 40% !important;
         transition: transform 0.2s ease !important;
     }
     .metric-card:hover {
