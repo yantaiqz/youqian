@@ -160,6 +160,19 @@ st.markdown("""
         font-weight: 500 !important;
         font-size: 0.9rem !important;
     }
+
+    [data-testid="stVerticalBlockBorderWrapper"] {
+        background-color: #ffffff !important;
+        border-radius: 16px !important;
+        padding: 24px !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02) !important;
+        border: 1px solid #f1f5f9 !important;
+    }
+    
+    /* 微调容器内部间距，防止双重 padding */
+    [data-testid="stVerticalBlockBorderWrapper"] > div {
+        padding: 0 !important; 
+    }
 </style>
 """, unsafe_allow_html=True)
 
