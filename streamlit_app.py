@@ -434,9 +434,10 @@ def main():
         {text['card_income']}
     </div>
 """
-        st.markdown(html_header, unsafe_allow_html=True)
-        render_metric_card(text, income, country["currency"], inc_pct, inc_rank, "#3b82f6", lang)
-        st.markdown("</div>", unsafe_allow_html=True)
+        with st.container(border=True):
+            st.markdown(html_header, unsafe_allow_html=True)
+            render_metric_card(text, income, country["currency"], inc_pct, inc_rank, "#3b82f6", lang)
+            st.markdown("</div>", unsafe_allow_html=True)
 
     # 财富卡片 (修正缩进)
     with r2: 
@@ -446,9 +447,10 @@ def main():
         {text['card_wealth']}
     </div>
 """
-        st.markdown(html_header_w, unsafe_allow_html=True)
-        render_metric_card(text, wealth, country["currency"], wlh_pct, wlh_rank, "#6366f1", lang)
-        st.markdown("</div>", unsafe_allow_html=True)
+        with st.container(border=True):
+            st.markdown(html_header_w, unsafe_allow_html=True)
+            render_metric_card(text, wealth, country["currency"], wlh_pct, wlh_rank, "#6366f1", lang)
+            st.markdown("</div>", unsafe_allow_html=True)
     
     # --- 底部统计与声明 ---
     st.markdown(f"""
