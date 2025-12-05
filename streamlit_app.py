@@ -390,7 +390,7 @@ def main():
     with c3:
         wealth = st.number_input(text['wealth'], value=int(country["medianWealth"]), step=5000)
 
-     st.markdown('</div>', unsafe_allow_html=True) # End content-card
+    st.markdown('</div>', unsafe_allow_html=True) # End content-card
 
     # 按钮放这里
     st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
