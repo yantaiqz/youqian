@@ -374,17 +374,14 @@ def main():
         st.markdown(f"<div class='page-subtitle'>{text['subtitle']}</div>", unsafe_allow_html=True)
     
     # --- 第一部分：输入区域 (包裹在白色卡片中) ---
-    #st.markdown(f"<div style='font-weight:600; color:#334155; margin-bottom:12px; font-size:0.95rem;'>1. {text['section_input']}</div>", unsafe_allow_html=True)
-    #st.markdown('<div class="content-card">', unsafe_allow_html=True)
 
     st.markdown(
         f"<div style='font-weight:600; color:#334155; margin-bottom:12px; font-size:0.95rem;'>1. {text['section_input']}</div>",
         unsafe_allow_html=True
     )
+    
     # 开始白色卡片
     st.markdown('<div class="content-card">', unsafe_allow_html=True)
-
-    
     c1, c2, c3 = st.columns(3)
     with c1:
         country_code = st.selectbox(
@@ -397,13 +394,13 @@ def main():
         income = st.number_input(text['income'], value=int(country["medianIncome"]), step=1000)
     with c3:
         wealth = st.number_input(text['wealth'], value=int(country["medianWealth"]), step=5000)
-
+    st.markdown('</div>', unsafe_allow_html=True) # End content-card
+    
     
     # 按钮放这里
     st.markdown("<div style='height: 15px;'>", unsafe_allow_html=True)
     st.button(text['btn_calc'], type="primary") # 按钮逻辑：点击即刷新，其实Streamlit改变输入框就自动刷新了，这个按钮主要为了心理确认
     st.markdown('</div>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True) # End content-card
     
     # --- 第二部分：结果渲染区域 ---
     # 计算逻辑
