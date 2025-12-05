@@ -332,27 +332,28 @@ def render_metric_card(t, amount, currency, percentile, rank, color, lang_key):
     except:
         pass
 
-    # 文字信息 - 优化排版
-    st.markdown(f"""
-    <div style="margin-top: -5px; padding: 0 10px;">
-        <div style="font-size: 2rem; font-weight: 700; color: #0f172a; line-height: 1.1; margin-bottom: 12px;">
-            <span style="font-size: 1.2rem; color: #64748b; font-weight: 600; margin-right: 4px;">{currency}</span>{format_compact_localized(amount, lang_key)}
+    # 文字信息 - 优化排版 (关键修正：移除缩进)
+    html = f"""
+<div style="margin-top: -5px; padding: 0 10px;">
+    <div style="font-size: 2rem; font-weight: 700; color: #0f172a; line-height: 1.1; margin-bottom: 12px;">
+        <span style="font-size: 1.2rem; color: #64748b; font-weight: 600; margin-right: 4px;">{currency}</span>{format_compact_localized(amount, lang_key)}
+    </div>
+    
+    <div style="background-color: #f8fafc; border-radius: 8px; padding: 12px; margin-top: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <span style="font-size: 0.85rem; color: #64748b;">排名百分比</span>
+            <span style="color: {color}; font-weight: 700; font-size: 1.1rem;">{rank_str}</span>
         </div>
-        
-        <div style="background-color: #f8fafc; border-radius: 8px; padding: 12px; margin-top: 10px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                <span style="font-size: 0.85rem; color: #64748b;">排名百分比</span>
-                <span style="color: {color}; font-weight: 700; font-size: 1.1rem;">{rank_str}</span>
-            </div>
-            <div style="width: 100%; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
-                <div style="width: {(percentile * 100)}%; height: 100%; background: {color}; border-radius: 3px;"></div>
-            </div>
-            <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 8px; text-align: right;">
-                 {t['rank_approx']} {format_compact_localized(rank, lang_key)}
-            </div>
+        <div style="width: 100%; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
+            <div style="width: {(percentile * 100)}%; height: 100%; background: {color}; border-radius: 3px;"></div>
+        </div>
+        <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 8px; text-align: right;">
+                {t['rank_approx']} {format_compact_localized(rank, lang_key)}
         </div>
     </div>
-    """, unsafe_allow_html=True)
+</div>
+"""
+    st.markdown(html, unsafe_allow_html=True)
 
 
 # -------------------------- 5. 主程序入口 --------------------------
@@ -409,25 +410,27 @@ def main():
     # 使用两列展示结果卡片
     r1, r2 = st.columns(2)
     
-    # 收入卡片
+    # 收入卡片 (修正缩进)
     with r1: 
-        st.markdown(f"""
-        <div class="metric-card" style="border-top: 4px solid #3b82f6 !important;">
-            <div style="color: #64748b; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 15px;">
-                {text['card_income']}
-            </div>
-        """, unsafe_allow_html=True)
+        html_header = f"""
+<div class="metric-card" style="border-top: 4px solid #3b82f6 !important;">
+    <div style="color: #64748b; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 15px;">
+        {text['card_income']}
+    </div>
+"""
+        st.markdown(html_header, unsafe_allow_html=True)
         render_metric_card(text, income, country["currency"], inc_pct, inc_rank, "#3b82f6", lang)
         st.markdown("</div>", unsafe_allow_html=True)
 
-    # 财富卡片
+    # 财富卡片 (修正缩进)
     with r2: 
-        st.markdown(f"""
-        <div class="metric-card" style="border-top: 4px solid #6366f1 !important;">
-            <div style="color: #64748b; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 15px;">
-                {text['card_wealth']}
-            </div>
-        """, unsafe_allow_html=True)
+        html_header_w = f"""
+<div class="metric-card" style="border-top: 4px solid #6366f1 !important;">
+    <div style="color: #64748b; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 15px;">
+        {text['card_wealth']}
+    </div>
+"""
+        st.markdown(html_header_w, unsafe_allow_html=True)
         render_metric_card(text, wealth, country["currency"], wlh_pct, wlh_rank, "#6366f1", lang)
         st.markdown("</div>", unsafe_allow_html=True)
     
