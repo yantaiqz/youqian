@@ -6,57 +6,90 @@ import matplotlib.patches as patches
 import json
 import datetime
 import os  
+import streamlit as st
+import datetime
+import time # 保持导入，以备将来使用
 
-# -------------------------- 免费代码配置 --------------------------
-FREE_ACCESS_CODE = "FREE24H" # 预设的免费代码
-ACCESS_DURATION_HOURS = 24
+# --- 权限配置 ---
+FREE_PERIOD_SECONDS = 60      # 免费试用期 60 秒
+ACCESS_DURATION_HOURS = 24    # 密码解锁后的访问时长 24 小时
+UNLOCK_CODE = "vip24"        # 预设的解锁密码
+# --- 配置结束 ---
 
-def check_free_access():
-    """检查用户是否输入了免费代码，并判断权限是否在有效期内。"""
+# -------------------------------------------------------------
+# --- 1. 初始化会话状态 ---
+# -------------------------------------------------------------
+
+# 'start_time': 首次访问时间，用于计算免费试用期
+if 'start_time' not in st.session_state:
+    st.session_state.start_time = datetime.datetime.now()
+    # 'access_status': 'free' (免费期), 'locked' (需解锁), 'unlocked' (已解锁)
+    st.session_state.access_status = 'free'
+    st.session_state.unlock_time = None # 记录密码解锁的时间点
+
+# -------------------------------------------------------------
+# --- 2. 检查访问状态和时间逻辑 ---
+# -------------------------------------------------------------
+
+current_time = datetime.datetime.now()
+access_granted = False # 默认无权限
+
+# 检查当前状态并更新
+if st.session_state.access_status == 'free':
+    time_elapsed = (current_time - st.session_state.start_time).total_seconds()
     
-    # 1. 如果会话中没有权限信息，或者权限已过期，则视为无权限
-    if "access_granted_time" not in st.session_state:
-        st.session_state.access_granted = False
-        return False
+    if time_elapsed < FREE_PERIOD_SECONDS:
+        # 仍在免费期内
+        access_granted = True
+        time_left = FREE_PERIOD_SECONDS - time_elapsed
+        st.info(f"⏳ **免费试用中... 剩余 {time_left:.1f} 秒。**")
+    else:
+        # 免费期结束，进入锁定状态
+        st.session_state.access_status = 'locked'
+        st.session_state.start_time = None # 清除免费期计时
+        st.rerun() # 强制刷新以立即显示锁定界面
         
-    granted_time = st.session_state.access_granted_time
-    # 检查权限是否过期
-    if datetime.datetime.now() > granted_time + datetime.timedelta(hours=ACCESS_DURATION_HOURS):
-        st.session_state.access_granted = False
-        # 也可以在这里清除已过期的记录: del st.session_state.access_granted_time
-        return False
-        
-    # 2. 权限仍在有效期内
-    st.session_state.access_granted = True
-    return True
-
-# -------------------------- 免费访问控制 UI --------------------------
-
-# 检查当前状态
-if not check_free_access():
-    st.info("💡 这是一个付费内容展示页，您可以输入特定代码获得24小时免费访问权限。")
+elif st.session_state.access_status == 'unlocked':
+    unlock_expiry = st.session_state.unlock_time + datetime.timedelta(hours=ACCESS_DURATION_HOURS)
     
-    # 使用一个 form 来处理输入和按钮，避免 Streamlit 页面因每次输入而重新运行
-    with st.form("access_form"):
-        code_input = st.text_input("输入24小时免费代码:", key="code_input_key")
-        submit_button = st.form_submit_button("验证代码")
+    if current_time < unlock_expiry:
+        # 在 24 小时有效期内
+        access_granted = True
+        time_left_delta = unlock_expiry - current_time
+        hours = int(time_left_delta.total_seconds() // 3600)
+        minutes = int((time_left_delta.total_seconds() % 3600) // 60)
+        
+        st.sidebar.success(f"🔓 **付费权限剩余:** {hours} 小时 {minutes} 分钟")
+    else:
+        # 24 小时已过期，进入锁定状态
+        st.session_state.access_status = 'locked'
+        st.session_state.unlock_time = None
+        st.rerun() # 强制刷新
+
+# -------------------------------------------------------------
+# --- 3. 锁定界面及密码输入 ---
+# -------------------------------------------------------------
+
+if not access_granted:
+    st.error("🔒 **访问受限。免费试用期已结束！**")
+    st.markdown(f"请输入代码 **`{UNLOCK_CODE}`** 以获得 {ACCESS_DURATION_HOURS} 小时的高级访问权限。")
+    
+    with st.form("access_lock_form"):
+        password_input = st.text_input("解锁代码:", type="password", key="password_input_key")
+        submit_button = st.form_submit_button("验证并解锁")
         
         if submit_button:
-            if code_input == FREE_ACCESS_CODE:
-                st.session_state.access_granted_time = datetime.datetime.now()
-                st.session_state.access_granted = True
-                st.success("✅ 验证成功！您已获得24小时免费浏览权限。页面即将刷新...")
-                # 强制重新运行以立即显示内容
+            if password_input == UNLOCK_CODE:
+                st.session_state.access_status = 'unlocked'
+                st.session_state.unlock_time = datetime.datetime.now()
+                st.success("🎉 解锁成功！您已获得 1 天访问权限。页面即将刷新...")
                 st.rerun()
             else:
-                st.error("❌ 代码错误，请检查输入。")
+                st.error("❌ 代码错误，请重试。")
+                
+    # 强制停止脚本，隐藏所有受保护的内容
+    st.stop()
     
-    # 如果此时仍然没有权限，则隐藏主要内容
-    if not st.session_state.access_granted:
-        # 隐藏后续内容并停止脚本执行
-        st.warning("🔒 请输入代码以继续浏览。")
-        st.stop() # 停止运行脚本的其余部分
-        
 
 # -------------------------- 0. 全局配置 (必须置顶) --------------------------
 st.set_page_config(
