@@ -452,7 +452,7 @@ def render_wealth_matrix(percentile, color_high, color_low, text, lang_key):
     """
     st.markdown(legend_html, unsafe_allow_html=True)
 
-def render_metric_card(t, amount, currency, percentile, rank, color_high, color_low, lang_key):
+def render_metric_card(t, amount, currency, percentile, rank, color_low, color_high, lang_key):
     top_percent = (1 - percentile) * 100
     rank_str = f"{t['rank_prefix']} {top_percent:.1f}%"
     
@@ -546,7 +546,7 @@ def main():
         with st.container(border=True):
             st.markdown(html_header, unsafe_allow_html=True)
             # 收入矩阵：主色 #3b82f6，对比色 #93c5fd
-            render_metric_card(text, income, country["currency"], inc_pct, inc_rank, "#93c5fd", "#3b82f6", lang)
+            render_metric_card(text, income, country["currency"], inc_pct, inc_rank, "#3b82f6", "#93c5fd", lang)
             st.markdown("</div>", unsafe_allow_html=True)
 
     with r2: 
