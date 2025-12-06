@@ -210,8 +210,7 @@ visit_text = f"今日访问: {daily_visits}"
 
 # -------------------------- 3. 底部导航渲染函数 (无Icon版) --------------------------
 def render_bottom_nav(text):
-    # 移除了 icon span，简化了结构
-    nav_html = """
+    nav_html = f"""
     <div class="bottom-nav">
         <a href="https://youqian.streamlit.app/" class="nav-item active" target="_self">
             {text['nav_1']}
