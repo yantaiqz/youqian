@@ -390,13 +390,17 @@ def render_wealth_pyramid(percentile, color_high, color_low, text, lang_key):
     fig.patch.set_alpha(0)
     ax.patch.set_alpha(0)
     
+.
+
     # 绘制金字塔每层
     layer_height = 1 / pyramid_layers  # 每层高度
-    for layer_idx in range(pyramid_layers):
+    # 关键修复：迭代 layer_cell_counts 的实际长度
+    # for layer_idx in range(pyramid_layers): # <-- 删除这一行
+    for layer_idx in range(len(layer_cell_counts)): # <-- 替换为这一行
         layer_total = layer_cell_counts[layer_idx]
         layer_high = layer_high_counts[layer_idx]
         layer_y = layer_idx * layer_height  # 每层y坐标（从下往上）
-        
+
         # 每层宽度比例（上窄下宽）
         layer_width_ratio = (layer_idx + 1) / pyramid_layers
         layer_width = layer_width_ratio * 0.8  # 限制最大宽度为0.8，居中显示
