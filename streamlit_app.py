@@ -10,28 +10,33 @@ import os
 st.set_page_config(
     page_title="WealthRank 财富排行榜",
     page_icon="💎",
-    layout="wide",  # 保持wide，但通过CSS限制内容宽度
+    layout="wide",  # 保持wide，但通过多层CSS限制内容宽度
     initial_sidebar_state="collapsed"
 )
 
 st.markdown("""
 <style>
-    /* 1. 彻底隐藏Streamlit默认干扰元素 */
+    /* 1. 隐藏默认干扰元素 */
     header, [data-testid="stSidebar"], footer, .stDeployButton, [data-testid="stToolbar"] {
         display: none !important;
     }
     
-    /* 2. 全局样式重置 - 关键：给最外层加基础留白 */
+    /* 2. 最外层容器 - 强制左右留白（关键：覆盖Streamlit默认布局） */
+    [data-testid="stAppViewContainer"] {
+        padding-left: 2rem !important;  /* 全局左留白（可调整：1rem/3rem） */
+        padding-right: 2rem !important; /* 全局右留白（可调整：1rem/3rem） */
+        box-sizing: border-box !important;
+    }
+    
+    /* 3. 应用主容器 - 背景+底部留白 */
     .stApp {
         background-color: #f8fafc !important;
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
         padding-bottom: 80px !important;
-        padding-left: 1rem !important;  /* 全局左留白 */
-        padding-right: 1rem !important; /* 全局右留白 */
         margin: 0 !important;
     }
     
-    /* 3. 底部导航核心样式 - 纯文字现代风 */
+    /* 4. 底部导航样式 */
     .bottom-nav {
         position: fixed !important;
         bottom: 0 !important;
@@ -50,7 +55,7 @@ st.markdown("""
         box-sizing: border-box !important;
     }
     
-    /* 4. 导航项样式 */
+    /* 5. 导航项样式 */
     .nav-item {
         display: flex !important;
         align-items: center !important;
@@ -59,15 +64,15 @@ st.markdown("""
         height: 40px !important;
         color: #94a3b8 !important;
         text-decoration: none !important;
-        font-size: 0.70rem !important; /* 缩小适配8个项 */
+        font-size: 0.70rem !important;
         font-weight: 600 !important;
         letter-spacing: -0.01em !important;
         border-radius: 8px !important;
         transition: all 0.2s ease !important;
         margin: 0 2px !important;
-        white-space: nowrap !important; /* 禁止换行 */
-        overflow: hidden !important; /* 超出隐藏 */
-        text-overflow: ellipsis !important; /* 超长显示省略号 */
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
     }
     
     .nav-item:hover {
@@ -85,14 +90,20 @@ st.markdown("""
     }
 
     /* --------------------------------------------------- */
-    /* 核心：主内容容器 - 强制居中 + 限制宽度 + 留白 */
+    /* 核心：多层容器嵌套 - 确保内容居中且不溢出 */
     /* --------------------------------------------------- */
-    .main-content {
-        max-width: 900px !important; /* 内容最大宽度（可调整：800/1000px） */
+    /* 外层容器：限制最大宽度 + 居中 */
+    .outer-container {
+        max-width: 1000px !important; /* 整体内容最大宽度（可调整） */
         margin: 0 auto !important;    /* 左右自动居中 */
-        padding: 2rem 1.5rem 1rem 1.5rem !important; /* 内部留白 */
-        box-sizing: border-box !important; /* 内边距计入宽度 */
-        width: 100% !important; /* 确保容器占满可用宽度 */
+        box-sizing: border-box !important;
+    }
+    
+    /* 内层容器：内容 padding + 进一步限制宽度 */
+    .inner-container {
+        width: 100% !important;
+        padding: 2rem 0 !important; /* 上下内边距，左右靠外层留白 */
+        box-sizing: border-box !important;
     }
 
     /* 标题样式 */
@@ -110,21 +121,29 @@ st.markdown("""
         font-weight: 400 !important;
     }
 
-    /* 修复卡片样式 - 适配居中容器 */
-    [data-testid="stVerticalBlockBorderWrapper"] {
+    /* 所有容器/卡片：强制适配宽度 + 不溢出 */
+    [data-testid="stVerticalBlockBorderWrapper"],
+    [data-testid="stContainer"],
+    .stHorizontalBlock {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
+    /* 输入区域卡片样式 */
+    .input-card {
         background-color: #ffffff !important;
         border-radius: 16px !important;
         padding: 24px !important;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02) !important;
         border: 1px solid #f1f5f9 !important;
-        width: 100% !important; /* 强制卡片宽度适配容器 */
         box-sizing: border-box !important;
-    }
-    [data-testid="stVerticalBlockBorderWrapper"] > div {
-        padding: 0 !important;
+        width: 100% !important;
     }
     
-    /* 结果指标卡片 - 适配居中布局 */
+    /* 结果指标卡片 */
     .metric-card {
         background: white !important; 
         border: 1px solid #eef2f7 !important; 
@@ -133,15 +152,14 @@ st.markdown("""
         text-align: center !important;
         box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.03), 0 4px 6px -2px rgba(0, 0, 0, 0.02) !important;
         box-sizing: border-box !important;
-        width: 100% !important; /* 适配容器宽度 */
+        width: 100% !important;
         transition: transform 0.2s ease !important;
-        height: auto !important; /* 取消固定高度，自适应内容 */
     }
     .metric-card:hover {
         transform: translateY(-2px) !important;
     }
 
-    /* 按钮样式 - 适配居中容器 */
+    /* 按钮样式 */
     div.stButton > button {
         background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
         color: white !important; 
@@ -154,27 +172,26 @@ st.markdown("""
         transition: all 0.2s !important;
         box-sizing: border-box !important;
     }
-    div.stButton > button:hover {
-        box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3) !important;
-        transform: translateY(-1px) !important;
-    }
     
-    /* 输入框样式 - 适配居中布局 */
+    /* 输入框样式 */
     .stSelectbox, .stNumberInput {
         width: 100% !important;
+        max-width: 100% !important;
         box-sizing: border-box !important;
+        padding: 0 !important;
+        margin: 0 !important;
     }
     .stSelectbox label, .stNumberInput label {
         color: #475569 !important;
         font-weight: 500 !important;
         font-size: 0.9rem !important;
     }
-
-    /* 修复列布局溢出问题 */
+    
+    /* 列布局：控制间距 + 不溢出 */
     [data-testid="stHorizontalBlock"] {
-        width: 100% !important;
-        box-sizing: border-box !important;
-        gap: 1rem !important; /* 列之间的间距 */
+        gap: 1rem !important; /* 列之间的间距（可调整） */
+        display: flex !important;
+        flex-wrap: wrap !important; /* 小屏幕自动换行 */
     }
 </style>
 """, unsafe_allow_html=True)
@@ -184,7 +201,6 @@ st.markdown("""
 COUNTER_FILE = "visit_stats.json"
 
 def update_daily_visits():
-    """安全更新访问量，如果出错则返回 0，绝不让程序崩溃"""
     try:
         today_str = datetime.date.today().isoformat()
         
@@ -265,7 +281,7 @@ TRANSLATIONS = {
         "btn_calc": "Update Analysis", "card_income": "Income Level", "card_wealth": "Wealth Status", 
         "rank_prefix": "Top", "rank_approx": "Rank #", 
         "disclaimer": "Estimations based on Log-Normal Distribution Model", 
-        "nav_1": "Wealth Rank",  # 简化文字适配显示
+        "nav_1": "Wealth Rank",
         "nav_2": "Global Real Estate",  
         "nav_3": "Urban Housing",  
         "nav_4": "Global Legal",  
@@ -371,8 +387,9 @@ def render_metric_card(t, amount, currency, percentile, rank, color, lang_key):
 
 # -------------------------- 5. 主程序入口 --------------------------
 def main():
-    # 1. 主内容区域容器（核心：所有内容都在这个容器内）
-    st.markdown('<div class="main-content">', unsafe_allow_html=True)
+    # 关键：双层容器嵌套 - 确保左右留白稳定
+    st.markdown('<div class="outer-container">', unsafe_allow_html=True)  # 外层：限制最大宽度+居中
+    st.markdown('<div class="inner-container">', unsafe_allow_html=True)  # 内层：控制上下内边距
     
     # --- 头部区域 ---
     h_col, l_col = st.columns([3, 1])
@@ -392,20 +409,21 @@ def main():
         unsafe_allow_html=True
     )
 
-    with st.container(border=True):
-        c1, c2, c3 = st.columns(3)
-        with c1:
-            country_code = st.selectbox(
-                text['location'], 
-                options=COUNTRY_DATA.keys(), 
-                format_func=lambda x: COUNTRY_DATA[x]["name_zh"] if lang == "中文" else COUNTRY_DATA[x]["name_en"]
-            )
-            country = COUNTRY_DATA[country_code]
-        with c2:
-            income = st.number_input(text['income'], value=int(country["medianIncome"]), step=1000)
-        with c3:
-            wealth = st.number_input(text['wealth'], value=int(country["medianWealth"]), step=5000)
-            
+    # 输入卡片：用自定义HTML容器替代Streamlit原生border容器（避免溢出）
+    st.markdown('<div class="input-card">', unsafe_allow_html=True)
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        country_code = st.selectbox(
+            text['location'], 
+            options=COUNTRY_DATA.keys(), 
+            format_func=lambda x: COUNTRY_DATA[x]["name_zh"] if lang == "中文" else COUNTRY_DATA[x]["name_en"]
+        )
+        country = COUNTRY_DATA[country_code]
+    with c2:
+        income = st.number_input(text['income'], value=int(country["medianIncome"]), step=1000)
+    with c3:
+        wealth = st.number_input(text['wealth'], value=int(country["medianWealth"]), step=5000)
+    st.markdown('</div>', unsafe_allow_html=True)  # 闭合输入卡片
     
     # 按钮
     st.markdown("<div style='height: 15px;'>", unsafe_allow_html=True)
@@ -430,10 +448,9 @@ def main():
         {text['card_income']}
     </div>
 """
-        with st.container(border=True):
-            st.markdown(html_header, unsafe_allow_html=True)
-            render_metric_card(text, income, country["currency"], inc_pct, inc_rank, "#3b82f6", lang)
-            st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown(html_header, unsafe_allow_html=True)
+        render_metric_card(text, income, country["currency"], inc_pct, inc_rank, "#3b82f6", lang)
+        st.markdown("</div>", unsafe_allow_html=True)
 
     with r2: 
         html_header_w = f"""
@@ -442,10 +459,9 @@ def main():
         {text['card_wealth']}
     </div>
 """
-        with st.container(border=True):
-            st.markdown(html_header_w, unsafe_allow_html=True)
-            render_metric_card(text, wealth, country["currency"], wlh_pct, wlh_rank, "#6366f1", lang)
-            st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown(html_header_w, unsafe_allow_html=True)
+        render_metric_card(text, wealth, country["currency"], wlh_pct, wlh_rank, "#6366f1", lang)
+        st.markdown("</div>", unsafe_allow_html=True)
     
     # --- 底部统计与声明 ---
     st.markdown(f"""
@@ -455,8 +471,9 @@ def main():
     </div>
     """, unsafe_allow_html=True)
     
-    # 闭合主内容容器
-    st.markdown('</div>', unsafe_allow_html=True)
+    # 闭合双层容器
+    st.markdown('</div>', unsafe_allow_html=True)  # 闭合inner-container
+    st.markdown('</div>', unsafe_allow_html=True)  # 闭合outer-container
     
     # 渲染底部导航
     render_bottom_nav(text)
