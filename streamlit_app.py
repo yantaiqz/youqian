@@ -216,7 +216,7 @@ def render_bottom_nav():
         <a href="https://youqian.streamlit.app/" class="nav-item active" target="_self">
             Dashboard
         </a>
-        <a href="https://fangchan.streamlit.app/" class="nav-item" target="_self">
+        <a href="https://fangchan.streamlit.app/" class="nav-item" target="_blank">
             Map
         </a>
         <a href="https://chuhai.streamlit.app/" class="nav-item" target="_self">
