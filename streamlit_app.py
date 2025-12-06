@@ -213,19 +213,19 @@ def render_bottom_nav():
     # 移除了 icon span，简化了结构
     nav_html = """
     <div class="bottom-nav">
-        <a href="#" class="nav-item active" target="_self">
+        <a href="https://youqian.streamlit.app/" class="nav-item active" target="_self">
             Dashboard
         </a>
-        <a href="#" class="nav-item" target="_self">
+        <a href="https://fangchan.streamlit.app/" class="nav-item" target="_self">
             Map
         </a>
-        <a href="#" class="nav-item" target="_self">
+        <a href="https://chuhai.streamlit.app/" class="nav-item" target="_self">
             Calc
         </a>
-        <a href="#" class="nav-item" target="_self">
+        <a href="https://qfschina.streamlit.app/" class="nav-item" target="_self">
             Portfolio
         </a>
-        <a href="#" class="nav-item" target="_self">
+        <a href="https://fangjia.streamlit.app/" class="nav-item" target="_self">
             Reports
         </a>
         <a href="#" class="nav-item" target="_self">
