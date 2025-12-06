@@ -329,7 +329,7 @@ def get_log_normal_percentile(value, median, shape_parameter):
         mu = math.log(median)
         sigma = shape_parameter
         z = (math.log(value) - mu) / sigma
-        percentile = 0.35 * (1 + math.erf(z / math.sqrt(2)))
+        percentile = 0.5 * (1 + math.erf(z / math.sqrt(2)))
         return min(max(percentile, 0.0001), 0.9999)
     except: return 0.0001
 
@@ -526,8 +526,8 @@ def main():
     st.markdown('</div>', unsafe_allow_html=True)
     
     # --- 第二部分：结果渲染区域 ---
-    inc_pct = get_log_normal_percentile(income, country["medianIncome"], country["incomeGini"])
-    wlh_pct = get_log_normal_percentile(wealth, country["medianWealth"], country["wealthGini"])
+    inc_pct = get_log_normal_percentile(income, country["medianIncome"]*1.5, country["incomeGini"])
+    wlh_pct = get_log_normal_percentile(wealth, country["medianWealth"]*1.5, country["wealthGini"])
     inc_rank = max(1, math.floor(country["population"] * (1 - inc_pct)))
     wlh_rank = max(1, math.floor(country["population"] * (1 - wlh_pct)))
     
