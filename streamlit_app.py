@@ -12,7 +12,7 @@ import time # 保持导入，以备将来使用
 
 # --- 权限配置 ---
 FREE_PERIOD_SECONDS = 6      # 免费试用期 60 秒
-ACCESS_DURATION_HOURS = 0.01    # 密码解锁后的访问时长 24 小时
+ACCESS_DURATION_HOURS = 0.001    # 密码解锁后的访问时长 24 小时
 UNLOCK_CODE = "vip24"        # 预设的解锁密码
 # --- 配置结束 ---
 
@@ -74,16 +74,7 @@ if not access_granted:
     st.error("🔒 **访问受限。免费试用期已结束！**")
     st.markdown(f"""
     <div style="background-color: #fff; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; margin-top: 15px;">
-        <p style="font-weight: 600; color: #1f2937; margin-bottom: 5px;">🔑 解锁高级访问权限</p>
-        <p style="font-size: 1.1em; color: #10b981; font-weight: 700; background-color: #ecfdf5; padding: 8px; border-radius: 4px; display: inline-block;">
-            解锁代码: <code>{UNLOCK_CODE}</code>
-        </p>
-        <p style="margin-top: 15px; color: #4b5563; font-size: 0.95em;">
-            输入此代码可获得 **{ACCESS_DURATION_HOURS} 小时** 的专业内容访问权限。
-        </p>
-        <p style="margin-top: 15px; color: #3b82f6; font-weight: 500;">
-            ➡️ **获取代码链接 (请在微信中打开):**
-        </p>
+        <p style="font-weight: 600; color: #1f2937; margin-bottom: 5px;">🔑 10元解锁无限制访问权限，获取代码链接 (请在微信中打开)</p>
         <p style="font-size: 0.9em; background-color: #eef2ff; padding: 8px; border-radius: 4px; overflow-wrap: break-word;">
             <code>#小程序://闲鱼/i4ahD0rqwGB5lba</code>
         </p>
