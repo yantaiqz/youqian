@@ -75,7 +75,6 @@ if not access_granted:
     st.markdown(f"""
     <div style="background-color: #fff; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; margin-top: 15px;">
         <p style="font-weight: 600; color: #1f2937; margin-bottom: 5px;">🔑 解锁高级访问权限</p>
-        
         <p style="font-size: 1.1em; color: #10b981; font-weight: 700; background-color: #ecfdf5; padding: 8px; border-radius: 4px; display: inline-block;">
             解锁代码: <code>{UNLOCK_CODE}</code>
         </p>
