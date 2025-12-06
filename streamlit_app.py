@@ -515,9 +515,9 @@ def main():
             )
             country = COUNTRY_DATA[country_code]
         with c2:
-            income = st.number_input(text['income'], value=int(country["medianIncome"]), step=1000)
+            income = st.number_input(text['income'], value=int(country["medianIncome"])*1.5, step=1000)
         with c3:
-            wealth = st.number_input(text['wealth'], value=int(country["medianWealth"]), step=5000)
+            wealth = st.number_input(text['wealth'], value=int(country["medianWealth"])*1.5, step=5000)
             
     
     # 按钮
@@ -526,8 +526,8 @@ def main():
     st.markdown('</div>', unsafe_allow_html=True)
     
     # --- 第二部分：结果渲染区域 ---
-    inc_pct = get_log_normal_percentile(income, country["medianIncome"]*1.5, country["incomeGini"])
-    wlh_pct = get_log_normal_percentile(wealth, country["medianWealth"]*1.5, country["wealthGini"])
+    inc_pct = get_log_normal_percentile(income, country["medianIncome"], country["incomeGini"])
+    wlh_pct = get_log_normal_percentile(wealth, country["medianWealth"], country["wealthGini"])
     inc_rank = max(1, math.floor(country["population"] * (1 - inc_pct)))
     wlh_rank = max(1, math.floor(country["population"] * (1 - wlh_pct)))
     
