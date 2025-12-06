@@ -344,7 +344,7 @@ def format_compact_localized(num, lang_key):
         if num >= 1e4: return f"{num/1e3:.0f}k"
         return f"{num:,.0f}"
 
-def render_wealth_matrix(percentile, color_low, color_high，text, lang_key):
+def render_wealth_matrix(percentile, color_low, color_high,text, lang_key):
     """
     渲染双色人群矩阵图
     :param percentile: 用户的百分位（0-1）
