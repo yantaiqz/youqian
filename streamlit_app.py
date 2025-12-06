@@ -559,7 +559,7 @@ def main():
         with st.container(border=True):
             st.markdown(html_header_w, unsafe_allow_html=True)
             # 资产矩阵：主色 #6366f1，对比色 #a5b4fc
-            render_metric_card(text, wealth, country["currency"], wlh_pct, wlh_rank,  "#a5b4fc","#6366f1", lang)
+            render_metric_card(text, wealth, country["currency"], wlh_pct, wlh_rank,  "#6366f1","#a5b4fc", lang)
             st.markdown("</div>", unsafe_allow_html=True)
     
     # --- 底部统计与声明 ---
