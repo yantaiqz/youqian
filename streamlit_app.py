@@ -515,9 +515,9 @@ def main():
             )
             country = COUNTRY_DATA[country_code]
         with c2:
-            income = st.number_input(text['income'], value=int(country["medianIncome"])*1.5, step=1000)
+            income = st.number_input(text['income'], value=int(country["medianIncome"]*1.5), step=1000)
         with c3:
-            wealth = st.number_input(text['wealth'], value=int(country["medianWealth"])*1.5, step=5000)
+            wealth = st.number_input(text['wealth'], value=int(country["medianWealth"]*1.5), step=5000)
             
     
     # 按钮
