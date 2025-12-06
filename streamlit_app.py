@@ -178,7 +178,7 @@ st.markdown("""
         gap: 1rem !important; /* 列之间的间距 */
     }
 
-    /* 人群矩阵样式 */
+    /* 金字塔矩阵样式 */
     .matrix-legend {
         display: flex;
         justify-content: center;
@@ -344,18 +344,19 @@ def format_compact_localized(num, lang_key):
         if num >= 1e4: return f"{num/1e3:.0f}k"
         return f"{num:,.0f}"
 
-def render_wealth_matrix(percentile, color_high, color_low, text, lang_key):
+def render_wealth_pyramid(percentile, color_high, color_low, text, lang_key):
     """
-    渲染双色人群矩阵图
+    渲染金字塔形态人群矩阵（上窄下宽）
     :param percentile: 用户的百分位（0-1）
     :param color_high: 高段位颜色（用户所在区间）
     :param color_low: 低段位颜色（其他人群）
     :param text: 翻译文本
     :param lang_key: 语言标识
     """
-    # 矩阵大小（20x10的网格，共200个单元格）
-    matrix_size = (10, 20)
-    total_cells = matrix_size[0] * matrix_size[1]
+    # 金字塔参数：10层（行），每层单元格数从1到20递增（上窄下宽）
+    pyramid_layers = 10  # 金字塔层数
+    max_cells_per_layer = 20  # 最底层最大单元格数
+    total_cells = sum([int(max_cells_per_layer * (i+1)/pyramid_layers) for i in range(pyramid_layers)])
     
     # 计算用户所在的高段位单元格数量
     top_percent = (1 - percentile) * 100
@@ -363,65 +364,84 @@ def render_wealth_matrix(percentile, color_high, color_low, text, lang_key):
     high_cells = max(1, min(high_cells, total_cells))  # 确保至少1个单元格
     low_cells = total_cells - high_cells
     
-    # 创建矩阵数据
-    matrix = []
-    cell_count = 0
-    for row in range(matrix_size[0]):
-        row_data = []
-        for col in range(matrix_size[1]):
-            if cell_count < high_cells:
-                row_data.append(1)  # 高段位
-            else:
-                row_data.append(0)  # 低段位
-            cell_count += 1
-        matrix.append(row_data)
+    # 分配高段位单元格（从顶层开始填充，符合金字塔顶尖代表高财富）
+    layer_cell_counts = []  # 每层的单元格数
+    layer_high_counts = []  # 每层的高段位单元格数
+    remaining_high = high_cells
     
-    # 反转矩阵，让高段位显示在右上角
-    matrix = np.array(matrix)[::-1, ::-1]
+    for i in range(pyramid_layers):
+        # 每层单元格数：第1层（顶层）1个，第10层（底层）20个
+        layer_total = int(max_cells_per_layer * (i+1)/pyramid_layers)
+        layer_cell_counts.append(layer_total)
+        
+        # 分配高段位单元格到当前层
+        assign_high = min(remaining_high, layer_total)
+        layer_high_counts.append(assign_high)
+        remaining_high -= assign_high
+        if remaining_high <= 0:
+            break
+    
+    # 剩余层填充0个高段位单元格
+    for i in range(len(layer_high_counts), pyramid_layers):
+        layer_high_counts.append(0)
     
     # 创建图表
-    fig, ax = plt.subplots(figsize=(8, 4))
+    fig, ax = plt.subplots(figsize=(8, 5))
     fig.patch.set_alpha(0)
     ax.patch.set_alpha(0)
     
-    # 绘制矩阵单元格
-    cell_width = 1 / matrix_size[1]
-    cell_height = 1 / matrix_size[0]
-    
-    for i in range(matrix_size[0]):
-        for j in range(matrix_size[1]):
-            x = j * cell_width
-            y = i * cell_height
+    # 绘制金字塔每层
+    layer_height = 1 / pyramid_layers  # 每层高度
+    for layer_idx in range(pyramid_layers):
+        layer_total = layer_cell_counts[layer_idx]
+        layer_high = layer_high_counts[layer_idx]
+        layer_y = layer_idx * layer_height  # 每层y坐标（从下往上）
+        
+        # 每层宽度比例（上窄下宽）
+        layer_width_ratio = (layer_idx + 1) / pyramid_layers
+        layer_width = layer_width_ratio * 0.8  # 限制最大宽度为0.8，居中显示
+        cell_width = layer_width / layer_total  # 每个单元格宽度
+        
+        # 每层起始x坐标（居中对齐）
+        start_x = (1 - layer_width) / 2
+        
+        # 绘制当前层的单元格
+        for cell_idx in range(layer_total):
+            x = start_x + cell_idx * cell_width
+            y = layer_y
             
-            # 选择单元格颜色
-            if matrix[i, j] == 1:
+            # 确定单元格类型（高段位/低段位）
+            if cell_idx < layer_high:
                 cell_color = color_high
                 alpha = 0.8
+                is_high = True
             else:
                 cell_color = color_low
                 alpha = 0.2
+                is_high = False
             
-            # 绘制矩形
+            # 绘制矩形单元格
             rect = patches.Rectangle(
-                (x, y), cell_width, cell_height,
+                (x, y), cell_width, layer_height,
                 linewidth=0.5, edgecolor='#f1f5f9',
                 facecolor=cell_color, alpha=alpha
             )
             ax.add_patch(rect)
+            
+            # 记录用户位置（第一个高段位单元格）
+            if is_high and (layer_idx == 0 and cell_idx == 0) or (layer_high > 0 and cell_idx == 0 and layer_idx == [i for i, v in enumerate(layer_high_counts) if v > 0][0]):
+                user_x = x + cell_width / 2
+                user_y = y + layer_height / 2
     
-    # 添加用户位置标记（在第一个高段位单元格中心）
-    high_pos = np.argwhere(matrix == 1)[0]
-    marker_x = (high_pos[1] + 0.5) * cell_width
-    marker_y = (high_pos[0] + 0.5) * cell_height
-    
+    # 添加用户位置标记（白色圆点）
     ax.scatter(
-        marker_x, marker_y, 
-        color=color_high, s=100, 
+        user_x, user_y, 
+        color=color_high, s=120, 
         edgecolor='white', linewidth=2, 
         zorder=10, alpha=1
     )
     ax.text(
-        marker_x, marker_y, '●', 
+        user_x, user_y, '●', 
         ha='center', va='center', 
         color='white', fontsize=8, 
         zorder=11
@@ -456,8 +476,8 @@ def render_metric_card(t, amount, currency, percentile, rank, color_high, color_
     top_percent = (1 - percentile) * 100
     rank_str = f"{t['rank_prefix']} {top_percent:.1f}%"
     
-    # 渲染人群矩阵
-    render_wealth_matrix(percentile, color_high, color_low, t, lang_key)
+    # 渲染金字塔矩阵
+    render_wealth_pyramid(percentile, color_high, color_low, t, lang_key)
 
     # 渲染数值信息
     html = f"""
@@ -545,7 +565,7 @@ def main():
 """
         with st.container(border=True):
             st.markdown(html_header, unsafe_allow_html=True)
-            # 收入矩阵：主色 #3b82f6，对比色 #93c5fd
+            # 收入金字塔：主色 #3b82f6，对比色 #93c5fd
             render_metric_card(text, income, country["currency"], inc_pct, inc_rank, "#3b82f6", "#93c5fd", lang)
             st.markdown("</div>", unsafe_allow_html=True)
 
@@ -558,7 +578,7 @@ def main():
 """
         with st.container(border=True):
             st.markdown(html_header_w, unsafe_allow_html=True)
-            # 资产矩阵：主色 #6366f1，对比色 #a5b4fc
+            # 资产金字塔：主色 #6366f1，对比色 #a5b4fc
             render_metric_card(text, wealth, country["currency"], wlh_pct, wlh_rank, "#6366f1", "#a5b4fc", lang)
             st.markdown("</div>", unsafe_allow_html=True)
     
