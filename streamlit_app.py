@@ -234,23 +234,23 @@ def render_bottom_nav(text):
         <a href="https://fangchan.streamlit.app/" class="nav-item" target="_blank">
             {text['nav_2']}
         </a>
-        <a href="https://chuhai.streamlit.app/" class="nav-item" target="_self">
+        <a href="https://fangjia.streamlit.app/" class="nav-item" target="_self">
             {text['nav_3']}
         </a>
-        <a href="https://qfschina.streamlit.app/" class="nav-item" target="_self">
+        <a href="https://chuhai.streamlit.app/" class="nav-item" target="_self">
             {text['nav_4']}
         </a>
-        <a href="https://fangjia.streamlit.app/" class="nav-item" target="_self">
+        <a href="https://chuhai.streamlit.app/" class="nav-item" target="_self">
             {text['nav_5']}
         </a>
-        <a href="#" class="nav-item" target="_self">
+        <a href="https://chuhai.streamlit.app/" class="nav-item" target="_self">
             {text['nav_6']}
         </a>
-        <a href="#" class="nav-item" target="_self">
+        <a href="https://qfschina.streamlit.app/" class="nav-item" target="_self">
             {text['nav_7']}
         </a>
-        <a href="#" class="nav-item" target="_self">
-            {text['nav_8']}
+        <a href="https://fangjia.streamlit.app/" class="nav-item" target="_self">
+            {text['nav_3']}
         </a>
     </div>
     """
