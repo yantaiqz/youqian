@@ -72,8 +72,27 @@ elif st.session_state.access_status == 'unlocked':
 
 if not access_granted:
     st.error("🔒 **访问受限。免费试用期已结束！**")
-    st.markdown(f"请输入代码 **`{UNLOCK_CODE}`** 以获得 {ACCESS_DURATION_HOURS} 小时的高级访问权限。")
+    st.markdown(f"""
+<div style="background-color: #fff; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; margin-top: 15px;">
+    <p style="font-weight: 600; color: #1f2937; margin-bottom: 5px;">🔑 解锁高级访问权限</p>
     
+    <p style="font-size: 1.1em; color: #10b981; font-weight: 700; background-color: #ecfdf5; padding: 8px; border-radius: 4px; display: inline-block;">
+        解锁代码: <code>{UNLOCK_CODE}</code>
+    </p>
+    
+    <p style="margin-top: 15px; color: #4b5563; font-size: 0.95em;">
+        输入此代码可获得 **{ACCESS_DURATION_HOURS} 小时** 的专业内容访问权限。
+    </p>
+    
+    <p style="margin-top: 15px; color: #3b82f6; font-weight: 500;">
+        ➡️ **获取代码链接 (请在微信中打开):**
+    </p>
+    <p style="font-size: 0.9em; background-color: #eef2ff; padding: 8px; border-radius: 4px; overflow-wrap: break-word;">
+        <code>#小程序://闲鱼/i4ahD0rqwGB5lba</code>
+    </p>
+</div>
+    """, unsafe_allow_html=True)
+
     with st.form("access_lock_form"):
         password_input = st.text_input("解锁代码:", type="password", key="password_input_key")
         submit_button = st.form_submit_button("验证并解锁")
