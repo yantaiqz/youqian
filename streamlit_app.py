@@ -85,11 +85,14 @@ st.markdown("""
     /* --------------------------------------------------- */
     /* 以下是你原有的其他卡片和容器样式，保持不变或按需微调 */
     /* --------------------------------------------------- */
-    
     .main-content {
+        /* 重点修改：设置最大宽度和自动居中 */
+        max-width: 900px !important; /* 设置内容的最大宽度，例如 900px */
+        margin: 0 auto !important; /* 上下边距为 0，左右边距自动 (居中) */
+        
+        /* 保持原有的内边距，但通常只有左右需要内边距 */
         padding: 2rem 1.5rem 1rem 1.5rem !important;
-        max-width: 900px !important; 
-        margin: 0 auto !important;
+        box-sizing: border-box !important;
     }
 
     .page-title {
