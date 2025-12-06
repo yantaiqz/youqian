@@ -14,168 +14,177 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
+
 st.markdown("""
 <style>
-    /* 1. 彻底隐藏Streamlit默认干扰元素 */
-    header, [data-testid="stSidebar"], footer, .stDeployButton, [data-testid="stToolbar"] {
-        display: none !important;
-    }
-    
-    /* 2. 全局样式重置 - 关键：给最外层加基础留白 */
-    .stApp {
-        background-color: #f8fafc !important;
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-        padding-bottom: 80px !important;
-        padding-left: 1rem !important;  /* 全局左留白 */
-        padding-right: 1rem !important; /* 全局右留白 */
-        margin: 0 !important;
-    }
-    
-    /* 3. 底部导航核心样式 - 纯文字现代风 */
-    .bottom-nav {
-        position: fixed !important;
-        bottom: 0 !important;
-        left: 0 !important;
-        width: 100% !important;
-        height: 60px !important;
-        background-color: rgba(255, 255, 255, 0.90) !important;
-        backdrop-filter: blur(16px) !important;
-        border-top: 1px solid rgba(226, 232, 240, 0.8) !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: space-between !important;
-        padding: 0 10px !important;
-        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.03) !important;
-        z-index: 9999 !important;
-        box-sizing: border-box !important;
-    }
-    
-    /* 4. 导航项样式 */
-    .nav-item {
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        width: 100% !important;
-        height: 40px !important;
-        color: #94a3b8 !important;
-        text-decoration: none !important;
-        font-size: 0.70rem !important; /* 缩小适配8个项 */
-        font-weight: 600 !important;
-        letter-spacing: -0.01em !important;
-        border-radius: 8px !important;
-        transition: all 0.2s ease !important;
-        margin: 0 2px !important;
-        white-space: nowrap !important; /* 禁止换行 */
-        overflow: hidden !important; /* 超出隐藏 */
-        text-overflow: ellipsis !important; /* 超长显示省略号 */
-    }
-    
-    .nav-item:hover {
-        background-color: rgba(241, 245, 249, 0.8) !important;
-        color: #64748b !important;
-    }
-    
-    .nav-item.active {
-        color: #2563eb !important;
-        background-color: rgba(59, 130, 246, 0.1) !important;
-    }
-    
-    .nav-item.active::before {
-        display: none !important;
-    }
+    /* 1. 彻底隐藏Streamlit默认干扰元素 */
+    header, [data-testid="stSidebar"], footer, .stDeployButton, [data-testid="stToolbar"] {
+        display: none !important;
+    }
 
-    /* --------------------------------------------------- */
-    /* 核心：主内容容器 - 强制居中 + 限制宽度 + 留白 */
-    /* --------------------------------------------------- */
-    .main-content {
-        max-width: 900px !important; /* 内容最大宽度（可调整：800/1000px） */
-        margin: 0 auto !important;    /* 左右自动居中 */
-        padding: 2rem 1.5rem 1rem 1.5rem !important; /* 内部留白 */
-        box-sizing: border-box !important; /* 内边距计入宽度 */
-        width: 100% !important; /* 确保容器占满可用宽度 */
-    }
-
-    /* 标题样式 */
-    .page-title {
-        font-size: 2rem !important;
-        font-weight: 800 !important;
-        color: #1e293b !important;
-        letter-spacing: -0.02em !important;
-        margin-bottom: 0.5rem !important;
-    }
-    .page-subtitle {
-        color: #64748b !important;
-        font-size: 1rem !important;
-        margin-bottom: 2rem !important;
-        font-weight: 400 !important;
-    }
-
-    /* 修复卡片样式 - 适配居中容器 */
-    [data-testid="stVerticalBlockBorderWrapper"] {
-        background-color: #ffffff !important;
-        border-radius: 16px !important;
-        padding: 24px !important;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02) !important;
-        border: 1px solid #f1f5f9 !important;
-        width: 100% !important; /* 强制卡片宽度适配容器 */
-        box-sizing: border-box !important;
-    }
-    [data-testid="stVerticalBlockBorderWrapper"] > div {
-        padding: 0 !important;
-    }
+    /* 2. ⚡️ 核心修改 A: 重置 Streamlit 最外层容器的左右边距 */
+    /* stApp 是整个页面的背景，要移除 Streamlit 默认的左右 padding，避免干扰居中 */
+    .stApp {
+        background-color: #f8fafc !important;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+        padding-bottom: 80px !important;
+        padding-left: 0 !important; /* 移除全局左留白 */
+        padding-right: 0 !important; /* 移除全局右留白 */
+        margin: 0 !important;
+    }
     
-    /* 结果指标卡片 - 适配居中布局 */
-    .metric-card {
-        background: white !important; 
-        border: 1px solid #eef2f7 !important; 
-        border-radius: 16px !important; 
-        padding: 16px !important; 
-        text-align: center !important;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.03), 0 4px 6px -2px rgba(0, 0, 0, 0.02) !important;
-        box-sizing: border-box !important;
-        width: 100% !important; /* 适配容器宽度 */
-        transition: transform 0.2s ease !important;
-        height: auto !important; /* 取消固定高度，自适应内容 */
+    /* 另一个关键 Streamlit 容器：移除左右 padding */
+    [data-testid="stAppViewBlock"] {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
     }
-    .metric-card:hover {
-        transform: translateY(-2px) !important;
-    }
+    
+    /* 3. 底部导航核心样式 */
+    .bottom-nav {
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 60px !important;
+        background-color: rgba(255, 255, 255, 0.90) !important;
+        backdrop-filter: blur(16px) !important;
+        border-top: 1px solid rgba(226, 232, 240, 0.8) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 0 10px !important;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.03) !important;
+        z-index: 9999 !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* 4. 导航项样式 */
+    .nav-item {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 100% !important;
+        height: 40px !important;
+        color: #94a3b8 !important;
+        text-decoration: none !important;
+        font-size: 0.70rem !important;
+        font-weight: 600 !important;
+        letter-spacing: -0.01em !important;
+        border-radius: 8px !important;
+        transition: all 0.2s ease !important;
+        margin: 0 2px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+    
+    .nav-item:hover {
+        background-color: rgba(241, 245, 249, 0.8) !important;
+        color: #64748b !important;
+    }
+    
+    .nav-item.active {
+        color: #2563eb !important;
+        background-color: rgba(59, 130, 246, 0.1) !important;
+    }
+    
+    .nav-item.active::before {
+        display: none !important;
+    }
 
-    /* 按钮样式 - 适配居中容器 */
-    div.stButton > button {
-        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
-        color: white !important; 
-        border-radius: 10px !important; 
-        padding: 0.7rem 1.5rem !important;
-        font-weight: 600 !important;
-        border: none !important;
-        width: 100% !important;
-        box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2) !important;
-        transition: all 0.2s !important;
-        box-sizing: border-box !important;
-    }
-    div.stButton > button:hover {
-        box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3) !important;
-        transform: translateY(-1px) !important;
-    }
-    
-    /* 输入框样式 - 适配居中布局 */
-    .stSelectbox, .stNumberInput {
-        width: 100% !important;
-        box-sizing: border-box !important;
-    }
-    .stSelectbox label, .stNumberInput label {
-        color: #475569 !important;
-        font-weight: 500 !important;
-        font-size: 0.9rem !important;
-    }
+    /* --------------------------------------------------- */
+    /* ⚡️ 核心修改 B: 主内容容器 - 强制居中 + 限制宽度 */
+    /* --------------------------------------------------- */
+    .main-content {
+        max-width: 900px !important; /* 设定最大宽度，大屏幕下两侧自动留白 */
+        margin: 0 auto !important;    /* 关键：左右外边距自动计算，实现居中 */
+        padding: 2rem 1.5rem 1rem 1.5rem !important; /* 内部留白（用于小屏幕和内容边距） */
+        box-sizing: border-box !important;
+        width: 100% !important; /* 确保容器在 max-width 限制下占满可用宽度 */
+    }
 
-    /* 修复列布局溢出问题 */
-    [data-testid="stHorizontalBlock"] {
-        width: 100% !important;
-        box-sizing: border-box !important;
-        gap: 1rem !important; /* 列之间的间距 */
-    }
+    /* --- 其他样式保持不变以适应居中容器 --- */
+    /* 标题样式 */
+    .page-title {
+        font-size: 2rem !important;
+        font-weight: 800 !important;
+        color: #1e293b !important;
+        letter-spacing: -0.02em !important;
+        margin-bottom: 0.5rem !important;
+    }
+    .page-subtitle {
+        color: #64748b !important;
+        font-size: 1rem !important;
+        margin-bottom: 2rem !important;
+        font-weight: 400 !important;
+    }
+
+    /* 修复卡片样式 - 适配居中容器 */
+    [data-testid="stVerticalBlockBorderWrapper"] {
+        background-color: #ffffff !important;
+        border-radius: 16px !important;
+        padding: 24px !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02) !important;
+        border: 1px solid #f1f5f9 !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    [data-testid="stVerticalBlockBorderWrapper"] > div {
+        padding: 0 !important;
+    }
+    
+    /* 结果指标卡片 - 适配居中布局 */
+    .metric-card {
+        background: white !important; 
+        border: 1px solid #eef2f7 !important; 
+        border-radius: 16px !important; 
+        padding: 16px !important; 
+        text-align: center !important;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.03), 0 4px 6px -2px rgba(0, 0, 0, 0.02) !important;
+        box-sizing: border-box !important;
+        width: 100% !important;
+        transition: transform 0.2s ease !important;
+        height: auto !important;
+    }
+    .metric-card:hover {
+        transform: translateY(-2px) !important;
+    }
+
+    /* 按钮样式 */
+    div.stButton > button {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+        color: white !important; 
+        border-radius: 10px !important; 
+        padding: 0.7rem 1.5rem !important;
+        font-weight: 600 !important;
+        border: none !important;
+        width: 100% !important;
+        box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2) !important;
+        transition: all 0.2s !important;
+        box-sizing: border-box !important;
+    }
+    div.stButton > button:hover {
+        box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3) !important;
+        transform: translateY(-1px) !important;
+    }
+    
+    /* 输入框样式 */
+    .stSelectbox, .stNumberInput {
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    .stSelectbox label, .stNumberInput label {
+        color: #475569 !important;
+        font-weight: 500 !important;
+        font-size: 0.9rem !important;
+    }
+
+    /* 修复列布局溢出问题 */
+    [data-testid="stHorizontalBlock"] {
+        width: 100% !important;
+        box-sizing: border-box !important;
+        gap: 1rem !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
