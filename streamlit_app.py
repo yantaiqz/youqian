@@ -59,7 +59,7 @@ elif st.session_state.access_status == 'unlocked':
         hours = int(time_left_delta.total_seconds() // 3600)
         minutes = int((time_left_delta.total_seconds() % 3600) // 60)
         
-        st.sidebar.success(f"🔓 **付费权限剩余:** {hours} 小时 {minutes} 分钟")
+        st.info(f"🔓 **付费权限剩余:** {hours} 小时 {minutes} 分钟")
     else:
         # 24 小时已过期，进入锁定状态
         st.session_state.access_status = 'locked'
