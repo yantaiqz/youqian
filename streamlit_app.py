@@ -452,7 +452,7 @@ def render_wealth_matrix(percentile, color_high, color_low, text, lang_key):
     """
     st.markdown(legend_html, unsafe_allow_html=True)
 
-def render_metric_card(t, amount, currency, percentile, rank, color_low, color_high, lang_key):
+def render_metric_card(t, amount, currency, percentile, rank, color_high, color_low, lang_key):
     top_percent = (1 - percentile) * 100
     rank_str = f"{t['rank_prefix']} {top_percent:.1f}%"
     
@@ -468,10 +468,10 @@ def render_metric_card(t, amount, currency, percentile, rank, color_low, color_h
     <div style="background-color: #f8fafc; border-radius: 8px; padding: 12px; margin-top: 10px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
             <span style="font-size: 0.85rem; color: #64748b;">排名百分比</span>
-            <span style="color: {color_high}; font-weight: 700; font-size: 1.1rem;">{rank_str}</span>
+            <span style="color: {color_low}; font-weight: 700; font-size: 1.1rem;">{rank_str}</span>
         </div>
         <div style="width: 100%; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
-            <div style="width: {(percentile * 100)}%; height: 100%; background: {color_high}; border-radius: 3px;"></div>
+            <div style="width: {(percentile * 100)}%; height: 100%; background: {color_low}; border-radius: 3px;"></div>
         </div>
         <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 8px; text-align: right;">
                 {t['rank_approx']} {format_compact_localized(rank, lang_key)}
