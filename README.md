@@ -1,4 +1,4 @@
-这是一个为您的 **“全球财富金字塔 (WealthRank)” Streamlit 应用** 生成的 SEO 优化的 Readme 文件。
+# [全球财富排名计算器](https://youqian.streamlit.app/) 
 
 该 Readme 重点突出应用的核心功能（**财富排名计算**、**数据可视化**）和关键技术（**Streamlit**、**对数正态分布模型**）。
 
