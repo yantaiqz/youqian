@@ -329,7 +329,7 @@ def get_log_normal_percentile(value, median, shape_parameter):
         mu = math.log(median)
         sigma = shape_parameter
         z = (math.log(value) - mu) / sigma
-        percentile = 0.5 * (1 + math.erf(z / math.sqrt(2)))
+        percentile = 0.35 * (1 + math.erf(z / math.sqrt(2)))
         return min(max(percentile, 0.0001), 0.9999)
     except: return 0.0001
 
