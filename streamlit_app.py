@@ -11,7 +11,7 @@ import datetime
 import time # 保持导入，以备将来使用
 
 # --- 权限配置 ---
-FREE_PERIOD_SECONDS = 60      # 免费试用期 60 秒
+FREE_PERIOD_SECONDS = 10      # 免费试用期 60 秒
 ACCESS_DURATION_HOURS = 24    # 密码解锁后的访问时长 24 小时
 UNLOCK_CODE = "vip24"        # 预设的解锁密码
 # --- 配置结束 ---
