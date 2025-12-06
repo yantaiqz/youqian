@@ -1,19 +1,81 @@
-# 🎈 Blank app template
+这是一个为您的 **“全球财富金字塔 (WealthRank)” Streamlit 应用** 生成的 SEO 优化的 Readme 文件。
 
-A simple Streamlit app template for you to modify!
+该 Readme 重点突出应用的核心功能（**财富排名计算**、**数据可视化**）和关键技术（**Streamlit**、**对数正态分布模型**）。
 
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://blank-app-template.streamlit.app/)
+-----
 
-### How to run it on your own machine
+# 💎 WealthRank: 全球财富金字塔分析 (Global Wealth Pyramid)
 
-1. Install the requirements
+**WealthRank** 是一个基于 **Streamlit** 的交互式数据应用，旨在帮助用户快速估算其个人或家庭的**年收入水平**和**家庭净资产**在全球和特定国家/地区的财富**排名百分比**。
 
-   ```
-   $ pip install -r requirements.txt
-   ```
+本应用利用**对数正态分布模型 (Log-Normal Distribution Model)** 和公开的财富分配数据，以可视化卡片和图表的形式，将您的财务状况放置在**全球财富金字塔**的准确位置。
 
-2. Run the app
+🚀 **[点击此处访问应用]** (请替换为您的 Streamlit App 链接)
 
-   ```
-   $ streamlit run streamlit_app.py
-   ```
+-----
+
+## ✨ 核心功能与亮点 (SEO 关键词优化)
+
+  * **📊 财富排名计算器:** 用户输入**居住国家**、**税前年收入**和**家庭净资产**，实时计算出收入和资产在全球人口中的百分比排名（例如：前 0.1%）。
+  * **📈 可视化指标卡片:** 结果以现代化的指标卡片展示，包括**精确百分比排名**、**绝对排名估算**和基于财富分布曲线的**位置标记图**。
+  * **🌎 多国数据支持:** 内置**中国 (CN)**、**美国 (US)**、**日本 (JP)** 等国家的基础财富数据和基尼系数（用于模型参数）。
+  * **📚 理论模型支撑:** 分析结果基于严谨的**对数正态分布模型 (Log-Normal Distribution)** 估算，确保计算的科学性。
+  * **全栈 UI 优化:** 采用定制的 CSS 样式，实现了**内容居中、卡片化布局**和**底部固定导航栏**，提供出色的用户体验。
+
+-----
+
+## 🔑 核心关键词 (SEO 优化)
+
+| 关键词类别 | 核心术语 |
+| :--- | :--- |
+| **应用主题** | **全球财富排名**, **财富金字塔**, **年收入水平**, **家庭净资产**, **财富分配**, **富豪榜** |
+| **技术/模型** | **Streamlit 数据应用**, **对数正态分布**, **Log-Normal Distribution Model**, **Matplotlib 可视化** |
+| **地理范围** | **中国财富排名**, **美国财富排名**, **全球财富数据** |
+
+-----
+
+## ⚙️ 技术栈与部署
+
+  * **Frontend:** Streamlit (用于快速构建交互界面和数据绑定)
+  * **Computation:** `math`, `numpy` (用于实现对数正态分布模型的 CDF 计算)
+  * **Visualization:** `matplotlib.pyplot` (用于生成指标卡片中的财富分布曲线图)
+  * **Utilities:** `json`, `datetime`, `os` (用于实现每日访问量计数)
+
+### 快速部署 (Quick Start)
+
+#### 1\. 克隆仓库
+
+```bash
+git clone [您的仓库链接]
+cd [您的仓库名]
+```
+
+#### 2\. 安装依赖
+
+```bash
+# 建议先创建并激活虚拟环境
+pip install streamlit numpy matplotlib
+```
+
+#### 3\. 运行应用
+
+```bash
+streamlit run app.py
+```
+
+-----
+
+## 🗺️ 底部导航栏概览 (Nav Bar Overview)
+
+应用底部包含 8 个快捷导航链接，指向与全球财富和商业相关的姊妹应用：
+
+| 链接名称 | 目标功能 |
+| :--- | :--- |
+| **财富排行** | 🔗 外部链接 (`youqian.streamlit.app`) **(当前页面)** |
+| **世界房产** | 🔗 外部链接 (`fangchan.streamlit.app`) |
+| **城市房价** | 🔗 外部链接 (`fangjia.streamlit.app`) |
+| **全球法律** | 🔗 外部链接 (`chuhai.streamlit.app`) |
+| **全球企业** | 🔗 外部链接 (`chuhai.streamlit.app`) |
+| **合同审查** | 🔗 外部链接 (`chuhai.streamlit.app`) |
+| **德国财税** | 🔗 外部链接 (`qfschina.streamlit.app`) |
+| **深圳房市** | 🔗 外部链接 (`fangjia.streamlit.app`) |
