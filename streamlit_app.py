@@ -452,49 +452,6 @@ def render_wealth_matrix(percentile, color_high, color_low, text, lang_key):
     st.markdown(legend_html, unsafe_allow_html=True)
     
     
-    # 添加用户位置标记（在第一个高段位单元格中心）
-    high_pos = np.argwhere(matrix == 1)[0]
-    marker_x = (high_pos[1] + 0.5) * cell_width
-    marker_y = (high_pos[0] + 0.5) * cell_height
-    
-    ax.scatter(
-        marker_x, marker_y, 
-        color=color_high, s=100, 
-        edgecolor='white', linewidth=2, 
-        zorder=10, alpha=1
-    )
-    ax.text(
-        marker_x, marker_y, '●', 
-        ha='center', va='center', 
-        color='white', fontsize=8, 
-        zorder=11
-    )
-    
-    # 图表样式设置
-    ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1)
-    ax.axis('off')
-    plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
-    
-    # 显示图表
-    st.pyplot(fig, use_container_width=True, transparent=True)
-    plt.close(fig)
-    
-    # 显示图例
-    legend_html = f"""
-    <div class="matrix-legend">
-        <div class="legend-item">
-            <div class="legend-color" style="background-color: {color_high};"></div>
-            <span>{text['matrix_legend_high'].format(top_percent)}</span>
-        </div>
-        <div class="legend-item">
-            <div class="legend-color" style="background-color: {color_low};"></div>
-            <span>{text['matrix_legend_low']}</span>
-        </div>
-    </div>
-    """
-    st.markdown(legend_html, unsafe_allow_html=True)
-
 def render_metric_card(t, amount, currency, percentile, rank, color_high, color_low, lang_key):
     top_percent = (1 - percentile) * 100
     rank_str = f"{t['rank_prefix']} {top_percent:.1f}%"
