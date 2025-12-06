@@ -78,11 +78,9 @@ if not access_granted:
         <p style="font-size: 1.1em; color: #10b981; font-weight: 700; background-color: #ecfdf5; padding: 8px; border-radius: 4px; display: inline-block;">
             解锁代码: <code>{UNLOCK_CODE}</code>
         </p>
-        
         <p style="margin-top: 15px; color: #4b5563; font-size: 0.95em;">
             输入此代码可获得 **{ACCESS_DURATION_HOURS} 小时** 的专业内容访问权限。
         </p>
-        
         <p style="margin-top: 15px; color: #3b82f6; font-weight: 500;">
             ➡️ **获取代码链接 (请在微信中打开):**
         </p>
