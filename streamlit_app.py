@@ -209,7 +209,7 @@ visit_text = f"今日访问: {daily_visits}"
 
 
 # -------------------------- 3. 底部导航渲染函数 (无Icon版) --------------------------
-def render_bottom_nav():
+def render_bottom_nav(text):
     # 移除了 icon span，简化了结构
     nav_html = """
     <div class="bottom-nav">
@@ -461,7 +461,7 @@ def main():
     st.markdown('</div>', unsafe_allow_html=True)
     
     # 2. 渲染底部导航
-    render_bottom_nav()
+    render_bottom_nav(text)
 
 # -------------------------- 6. 执行 --------------------------
 if __name__ == "__main__":
