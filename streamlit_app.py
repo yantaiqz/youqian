@@ -214,28 +214,28 @@ def render_bottom_nav():
     nav_html = """
     <div class="bottom-nav">
         <a href="https://youqian.streamlit.app/" class="nav-item active" target="_self">
-            Dashboard
+            {text['nav_1']}
         </a>
         <a href="https://fangchan.streamlit.app/" class="nav-item" target="_blank">
-            Map
+            {text['nav_2']}
         </a>
         <a href="https://chuhai.streamlit.app/" class="nav-item" target="_self">
-            Calc
+            {text['nav_3']}
         </a>
         <a href="https://qfschina.streamlit.app/" class="nav-item" target="_self">
-            Portfolio
+            {text['nav_4']}
         </a>
         <a href="https://fangjia.streamlit.app/" class="nav-item" target="_self">
-            Reports
+            {text['nav_5']}
         </a>
         <a href="#" class="nav-item" target="_self">
-            Alerts
+            {text['nav_6']}
         </a>
         <a href="#" class="nav-item" target="_self">
-            Settings
+            {text['nav_7']}
         </a>
         <a href="#" class="nav-item" target="_self">
-            Profile
+            {text['nav_8']}
         </a>
     </div>
     """
@@ -249,7 +249,17 @@ TRANSLATIONS = {
         "location": "Location", "income": "Annual Income", "wealth": "Net Worth", 
         "btn_calc": "Update Analysis", "card_income": "Income Level", "card_wealth": "Wealth Status", 
         "rank_prefix": "Top", "rank_approx": "Rank #", 
-        "disclaimer": "Estimations based on Log-Normal Distribution Model"
+        "disclaimer": "Estimations based on Log-Normal Distribution Model", 
+
+        # 导航栏文本
+        "nav_1": "Wealth Ranking",  # 财富排行（核心功能，用Ranking更符合英文产品导航惯例）
+        "nav_2": "Global Real Estate",  # 世界房产（Real Estate为房产领域标准术语）
+        "nav_3": "Urban Housing Prices",  # 城市房价（明确聚焦城市层级，Housing Prices精准对应房价）
+        "nav_4": "Global Legal",  # 全球法律（简洁有力，符合导航栏短文本要求，完整表达为Global Legal Services）
+        "nav_5": "Global Enterprises",  # 全球企业（Enterprises比Companies更正式，适配商业/法律场景）
+        "nav_6": "Contract Review",  # 合同审查（法律领域标准术语，Review准确对应"审查"的专业动作）
+        "nav_7": "German Tax & Finance",  # 德国财税（Tax & Finance涵盖税务+财务，符合中文"财税"的复合含义）
+        "nav_8": "Shenzhen Real Estate Market"  # 深圳房市（补充Market使语义完整，Real Estate Market为固定表达）      
     },
     "中文": {
         "title": "全球财富金字塔", "subtitle": "你的财富在全球处于什么段位？", 
@@ -257,7 +267,17 @@ TRANSLATIONS = {
         "location": "居住国家", "income": "税前年收入", "wealth": "家庭净资产", 
         "btn_calc": "重新计算", "card_income": "年收入水平", "card_wealth": "资产水平", 
         "rank_prefix": "前", "rank_approx": "绝对排名 第", 
-        "disclaimer": "基于对数正态分布模型估算"
+        "disclaimer": "基于对数正态分布模型估算", 
+
+        # 导航栏文本
+        "nav_1": "财富排行", 
+        "nav_2": "世界房产", 
+        "nav_3": "城市房价", 
+        "nav_4": "全球法律", 
+        "nav_5": "全球企业", 
+        "nav_6": "合同审查", 
+        "nav_7": "德国财税", 
+        "nav_8": "深圳房市"
     }
 }
 
