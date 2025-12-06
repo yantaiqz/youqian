@@ -348,29 +348,36 @@ def render_wealth_matrix(percentile, color_high, color_low, text, lang_key):
     """
     渲染双色人群矩阵图
     :param percentile: 用户的百分位（0-1）
-    :param color_high: 高段位颜色（例如蓝色）
-    :param color_low: 低段位颜色（例如灰色/对比色）
+    :param color_high: 高段位颜色（用户所在区间）
+    :param color_low: 低段位颜色（其他人群）
     :param text: 翻译文本
     :param lang_key: 语言标识
     """
-    # 矩阵大小（10x20的网格，共200个单元格）
+    # 矩阵大小（20x10的网格，共200个单元格）
     matrix_size = (10, 20)
     total_cells = matrix_size[0] * matrix_size[1]
     
     # 计算用户所在的高段位单元格数量
     top_percent = (1 - percentile) * 100
     high_cells = int(round(total_cells * (1 - percentile)))
-    high_cells = max(1, min(high_cells, total_cells))
+    high_cells = max(1, min(high_cells, total_cells))  # 确保至少1个单元格
+    low_cells = total_cells - high_cells
     
-    # 创建矩阵数据 (0=低段位, 1=高段位)
-    matrix = np.zeros(total_cells, dtype=int)
-    matrix[:high_cells] = 1 # 前 high_cells 个设置为高段位 (1)
+    # 创建矩阵数据
+    matrix = []
+    cell_count = 0
+    for row in range(matrix_size[0]):
+        row_data = []
+        for col in range(matrix_size[1]):
+            if cell_count < high_cells:
+                row_data.append(1)  # 高段位
+            else:
+                row_data.append(0)  # 低段位
+            cell_count += 1
+        matrix.append(row_data)
     
-    # 转换为 10x20 数组
-    matrix = matrix.reshape(matrix_size)
-    
-    # 移除反转：不进行反转，让高亮从左上角开始，更符合阅读习惯
-    # matrix = matrix[::-1, ::-1] 
+    # 反转矩阵，让高段位显示在右上角
+    matrix = np.array(matrix)[::-1, ::-1]
     
     # 创建图表
     fig, ax = plt.subplots(figsize=(8, 4))
@@ -381,25 +388,18 @@ def render_wealth_matrix(percentile, color_high, color_low, text, lang_key):
     cell_width = 1 / matrix_size[1]
     cell_height = 1 / matrix_size[0]
     
-    # 寻找第一个高段位单元格的位置 (用于标记)
-    high_pos = np.argwhere(matrix == 1)
-    if high_pos.size > 0:
-        first_high_pos = high_pos[0]
-    else:
-        first_high_pos = (0, 0)
-
     for i in range(matrix_size[0]):
         for j in range(matrix_size[1]):
             x = j * cell_width
             y = i * cell_height
             
-            # 选择单元格颜色 - 核心修改部分
+            # 选择单元格颜色
             if matrix[i, j] == 1:
-                cell_color = color_high  # 高段位使用主色
-                alpha = 1.0             # 保持不透明
+                cell_color = color_high
+                alpha = 0.8
             else:
-                cell_color = color_low   # 低段位使用对比色
-                alpha = 0.5             # 降低透明度以区分
+                cell_color = color_low
+                alpha = 0.2
             
             # 绘制矩形
             rect = patches.Rectangle(
@@ -410,19 +410,20 @@ def render_wealth_matrix(percentile, color_high, color_low, text, lang_key):
             ax.add_patch(rect)
     
     # 添加用户位置标记（在第一个高段位单元格中心）
-    marker_x = (first_high_pos[1] + 0.5) * cell_width
-    marker_y = (first_high_pos[0] + 0.5) * cell_height
+    high_pos = np.argwhere(matrix == 1)[0]
+    marker_x = (high_pos[1] + 0.5) * cell_width
+    marker_y = (high_pos[0] + 0.5) * cell_height
     
     ax.scatter(
         marker_x, marker_y, 
-        color='white', s=150, # 增大标记圆点
-        edgecolor=color_high, linewidth=3, 
+        color=color_high, s=100, 
+        edgecolor='white', linewidth=2, 
         zorder=10, alpha=1
     )
     ax.text(
-        marker_x, marker_y, '★', # 替换为星号或点
+        marker_x, marker_y, '●', 
         ha='center', va='center', 
-        color=color_high, fontsize=10, 
+        color='white', fontsize=8, 
         zorder=11
     )
     
@@ -444,14 +445,13 @@ def render_wealth_matrix(percentile, color_high, color_low, text, lang_key):
             <span>{text['matrix_legend_high'].format(top_percent)}</span>
         </div>
         <div class="legend-item">
-            <div class="legend-color" style="background-color: {color_low}; opacity: 0.5;"></div>
+            <div class="legend-color" style="background-color: {color_low};"></div>
             <span>{text['matrix_legend_low']}</span>
         </div>
     </div>
     """
     st.markdown(legend_html, unsafe_allow_html=True)
-    
-    
+
 def render_metric_card(t, amount, currency, percentile, rank, color_high, color_low, lang_key):
     top_percent = (1 - percentile) * 100
     rank_str = f"{t['rank_prefix']} {top_percent:.1f}%"
