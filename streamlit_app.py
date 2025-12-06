@@ -1,20 +1,19 @@
 import streamlit as st
 import math
 import numpy as np
-import matplotlib.pyplot as plt # 尽管不再用于排名图，但保留以防将来使用
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 import json
 import datetime
-import os 
+import os  
 
 # -------------------------- 0. 全局配置 (必须置顶) --------------------------
 st.set_page_config(
     page_title="WealthRank 财富排行榜",
     page_icon="💎",
-    layout="wide",  
+    layout="wide",  # 保持wide，但通过CSS限制内容宽度
     initial_sidebar_state="collapsed"
 )
-
-# -------------------------- 1. 核心样式 CSS 注入 --------------------------
 
 st.markdown("""
 <style>
@@ -28,20 +27,73 @@ st.markdown("""
         background-color: #f8fafc !important;
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
         padding-bottom: 80px !important;
-        padding-left: 1rem !important;
-        padding-right: 1rem !important;
+        padding-left: 1rem !important;  /* 全局左留白 */
+        padding-right: 1rem !important; /* 全局右留白 */
         margin: 0 !important;
+    }
+    
+    /* 3. 底部导航核心样式 - 纯文字现代风 */
+    .bottom-nav {
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 60px !important;
+        background-color: rgba(255, 255, 255, 0.90) !important;
+        backdrop-filter: blur(16px) !important;
+        border-top: 1px solid rgba(226, 232, 240, 0.8) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 0 10px !important;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.03) !important;
+        z-index: 9999 !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* 4. 导航项样式 */
+    .nav-item {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 100% !important;
+        height: 40px !important;
+        color: #94a3b8 !important;
+        text-decoration: none !important;
+        font-size: 0.70rem !important; /* 缩小适配8个项 */
+        font-weight: 600 !important;
+        letter-spacing: -0.01em !important;
+        border-radius: 8px !important;
+        transition: all 0.2s ease !important;
+        margin: 0 2px !important;
+        white-space: nowrap !important; /* 禁止换行 */
+        overflow: hidden !important; /* 超出隐藏 */
+        text-overflow: ellipsis !important; /* 超长显示省略号 */
+    }
+    
+    .nav-item:hover {
+        background-color: rgba(241, 245, 249, 0.8) !important;
+        color: #64748b !important;
+    }
+    
+    .nav-item.active {
+        color: #2563eb !important;
+        background-color: rgba(59, 130, 246, 0.1) !important;
+    }
+    
+    .nav-item.active::before {
+        display: none !important;
     }
 
     /* --------------------------------------------------- */
     /* 核心：主内容容器 - 强制居中 + 限制宽度 + 留白 */
     /* --------------------------------------------------- */
     .main-content {
-        max-width: 900px !important; 
-        margin: 0 auto !important;    
-        padding: 2rem 1.5rem 1rem 1.5rem !important; 
-        box-sizing: border-box !important; 
-        width: 100% !important; 
+        max-width: 900px !important; /* 内容最大宽度（可调整：800/1000px） */
+        margin: 0 auto !important;     /* 左右自动居中 */
+        padding: 2rem 1.5rem 1rem 1.5rem !important; /* 内部留白 */
+        box-sizing: border-box !important; /* 内边距计入宽度 */
+        width: 100% !important; /* 确保容器占满可用宽度 */
     }
 
     /* 标题样式 */
@@ -66,7 +118,7 @@ st.markdown("""
         padding: 24px !important;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02) !important;
         border: 1px solid #f1f5f9 !important;
-        width: 100% !important; 
+        width: 100% !important; /* 强制卡片宽度适配容器 */
         box-sizing: border-box !important;
     }
     [data-testid="stVerticalBlockBorderWrapper"] > div {
@@ -82,9 +134,9 @@ st.markdown("""
         text-align: center !important;
         box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.03), 0 4px 6px -2px rgba(0, 0, 0, 0.02) !important;
         box-sizing: border-box !important;
-        width: 100% !important; 
+        width: 100% !important; /* 适配容器宽度 */
         transition: transform 0.2s ease !important;
-        height: auto !important; 
+        height: auto !important; /* 取消固定高度，自适应内容 */
     }
     .metric-card:hover {
         transform: translateY(-2px) !important;
@@ -125,22 +177,25 @@ st.markdown("""
         box-sizing: border-box !important;
         gap: 1rem !important; /* 列之间的间距 */
     }
-    
-    /* --------------------------------------------------- */
-    /* 新增：人群矩阵样式 */
-    /* --------------------------------------------------- */
-    .dot-matrix-container {
-        display: grid; 
-        grid-template-columns: repeat(10, 1fr); 
-        gap: 4px; 
-        width: 100%; 
-        max-width: 150px; 
-        margin: 0 auto 15px auto; /* 居中显示 */
+
+    /* 人群矩阵样式 */
+    .matrix-legend {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin-top: 10px;
+        font-size: 0.75rem;
+        color: #64748b;
     }
-    .dot {
-        width: 10px; 
-        height: 10px; 
-        border-radius: 50%;
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .legend-color {
+        width: 12px;
+        height: 12px;
+        border-radius: 3px;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -225,20 +280,22 @@ def render_bottom_nav(text):
 # -------------------------- 4. 业务逻辑与数据 --------------------------
 TRANSLATIONS = {
     "English": {
-        "title": "Global Wealth Pyramid", "subtitle": "Where do you stand globally?", 
+        "title": "Wealth Pyramid", "subtitle": "Where do you stand globally?", 
         "section_input": "Your Profile", "section_result": "Analysis Result",
         "location": "Location", "income": "Annual Income", "wealth": "Net Worth", 
         "btn_calc": "Update Analysis", "card_income": "Income Level", "card_wealth": "Wealth Status", 
         "rank_prefix": "Top", "rank_approx": "Rank #", 
         "disclaimer": "Estimations based on Log-Normal Distribution Model", 
-        "nav_1": "Wealth Rank", 
-        "nav_2": "Global Real Estate", 
-        "nav_3": "Urban Housing", 
-        "nav_4": "Global Legal", 
-        "nav_5": "Global Enterprises", 
-        "nav_6": "Contract Review", 
-        "nav_7": "German Tax", 
-        "nav_8": "Shenzhen Property"      
+        "nav_1": "Wealth Rank",  # 简化文字适配显示
+        "nav_2": "Global Real Estate",  
+        "nav_3": "Urban Housing",  
+        "nav_4": "Global Legal",  
+        "nav_5": "Global Enterprises",  
+        "nav_6": "Contract Review",  
+        "nav_7": "German Tax",  
+        "nav_8": "Shenzhen Property",
+        "matrix_legend_high": "Top {:.1f}% (You)",
+        "matrix_legend_low": "Remaining Population"   
     },
     "中文": {
         "title": "全球财富金字塔", "subtitle": "你的财富在全球处于什么段位？", 
@@ -254,7 +311,9 @@ TRANSLATIONS = {
         "nav_5": "全球企业", 
         "nav_6": "合同审查", 
         "nav_7": "德国财税", 
-        "nav_8": "深圳房市"
+        "nav_8": "深圳房市",
+        "matrix_legend_high": "前 {:.1f}% (你)",
+        "matrix_legend_low": "其他人群"
     }
 }
 
@@ -285,63 +344,134 @@ def format_compact_localized(num, lang_key):
         if num >= 1e4: return f"{num/1e3:.0f}k"
         return f"{num:,.0f}"
 
-# -------------------------- 新增：人群矩阵渲染函数 --------------------------
-
-def render_dot_matrix(percentile, color):
+def render_wealth_matrix(percentile, color_high, color_low, text, lang_key):
     """
-    渲染双色对比的人群矩阵 (Dot Matrix / Waffle Chart)。
-    使用 HTML/CSS 创建 10x10 的点阵。
-    
-    Args:
-        percentile (float): 财富百分位 (0.0001 to 0.9999)。
-        color (str): 突出显示的颜色 (例如: '#3b82f6')。
+    渲染双色人群矩阵图
+    :param percentile: 用户的百分位（0-1）
+    :param color_high: 高段位颜色（用户所在区间）
+    :param color_low: 低段位颜色（其他人群）
+    :param text: 翻译文本
+    :param lang_key: 语言标识
     """
-    # 计算需要突出显示的点数 (总共 100 个点)
-    # 我们显示 Top N% 的人，所以是 1 - percentile
-    highlight_count = math.ceil((1 - percentile) * 100)
+    # 矩阵大小（20x10的网格，共200个单元格）
+    matrix_size = (10, 20)
+    total_cells = matrix_size[0] * matrix_size[1]
     
-    # 定义非突出显示的颜色 (灰色)
-    base_color = '#e2e8f0'
+    # 计算用户所在的高段位单元格数量
+    top_percent = (1 - percentile) * 100
+    high_cells = int(round(total_cells * (1 - percentile)))
+    high_cells = max(1, min(high_cells, total_cells))  # 确保至少1个单元格
+    low_cells = total_cells - high_cells
     
-    # 使用 CSS Grid 创建 10x10 布局
-    dot_matrix_html = f"""
-    <div class="dot-matrix-container">
+    # 创建矩阵数据
+    matrix = []
+    cell_count = 0
+    for row in range(matrix_size[0]):
+        row_data = []
+        for col in range(matrix_size[1]):
+            if cell_count < high_cells:
+                row_data.append(1)  # 高段位
+            else:
+                row_data.append(0)  # 低段位
+            cell_count += 1
+        matrix.append(row_data)
+    
+    # 反转矩阵，让高段位显示在右上角
+    matrix = np.array(matrix)[::-1, ::-1]
+    
+    # 创建图表
+    fig, ax = plt.subplots(figsize=(8, 4))
+    fig.patch.set_alpha(0)
+    ax.patch.set_alpha(0)
+    
+    # 绘制矩阵单元格
+    cell_width = 1 / matrix_size[1]
+    cell_height = 1 / matrix_size[0]
+    
+    for i in range(matrix_size[0]):
+        for j in range(matrix_size[1]):
+            x = j * cell_width
+            y = i * cell_height
+            
+            # 选择单元格颜色
+            if matrix[i, j] == 1:
+                cell_color = color_high
+                alpha = 0.8
+            else:
+                cell_color = color_low
+                alpha = 0.2
+            
+            # 绘制矩形
+            rect = patches.Rectangle(
+                (x, y), cell_width, cell_height,
+                linewidth=0.5, edgecolor='#f1f5f9',
+                facecolor=cell_color, alpha=alpha
+            )
+            ax.add_patch(rect)
+    
+    # 添加用户位置标记（在第一个高段位单元格中心）
+    high_pos = np.argwhere(matrix == 1)[0]
+    marker_x = (high_pos[1] + 0.5) * cell_width
+    marker_y = (high_pos[0] + 0.5) * cell_height
+    
+    ax.scatter(
+        marker_x, marker_y, 
+        color=color_high, s=100, 
+        edgecolor='white', linewidth=2, 
+        zorder=10, alpha=1
+    )
+    ax.text(
+        marker_x, marker_y, '●', 
+        ha='center', va='center', 
+        color='white', fontsize=8, 
+        zorder=11
+    )
+    
+    # 图表样式设置
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1)
+    ax.axis('off')
+    plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
+    
+    # 显示图表
+    st.pyplot(fig, use_container_width=True, transparent=True)
+    plt.close(fig)
+    
+    # 显示图例
+    legend_html = f"""
+    <div class="matrix-legend">
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: {color_high};"></div>
+            <span>{text['matrix_legend_high'].format(top_percent)}</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: {color_low};"></div>
+            <span>{text['matrix_legend_low']}</span>
+        </div>
+    </div>
     """
-    
-    # 生成 100 个点
-    for i in range(100):
-        # 排名越靠前 (i < highlight_count)，使用高亮色
-        dot_color = color if i < highlight_count else base_color
-        
-        dot_matrix_html += f"""
-        <div class="dot" style="background-color: {dot_color};"></div>
-        """
-        
-    dot_matrix_html += "</div>"
-    st.markdown(dot_matrix_html, unsafe_allow_html=True)
+    st.markdown(legend_html, unsafe_allow_html=True)
 
-
-def render_metric_card(t, amount, currency, percentile, rank, color, lang_key):
+def render_metric_card(t, amount, currency, percentile, rank, color_high, color_low, lang_key):
     top_percent = (1 - percentile) * 100
     rank_str = f"{t['rank_prefix']} {top_percent:.1f}%"
     
-    # ----------------------------------------------------
-    # 替代原有的 Matplotlib 曲线图
-    render_dot_matrix(percentile, color) 
-    # ----------------------------------------------------
-    
+    # 渲染人群矩阵
+    render_wealth_matrix(percentile, color_high, color_low, t, lang_key)
+
+    # 渲染数值信息
     html = f"""
-<div style="margin-top: -5px; padding: 0 10px;">
+<div style="margin-top: 15px; padding: 0 10px;">
     <div style="font-size: 2rem; font-weight: 700; color: #0f172a; line-height: 1.1; margin-bottom: 12px;">
         <span style="font-size: 1.2rem; color: #64748b; font-weight: 600; margin-right: 4px;">{currency}</span>{format_compact_localized(amount, lang_key)}
     </div>
     <div style="background-color: #f8fafc; border-radius: 8px; padding: 12px; margin-top: 10px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
             <span style="font-size: 0.85rem; color: #64748b;">排名百分比</span>
-            <span style="color: {color}; font-weight: 700; font-size: 1.1rem;">{rank_str}</span>
+            <span style="color: {color_high}; font-weight: 700; font-size: 1.1rem;">{rank_str}</span>
         </div>
         <div style="width: 100%; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
-            <div style="width: {(percentile * 100)}%; height: 100%; background: {color}; border-radius: 3px;"></div>
+            <div style="width: {(percentile * 100)}%; height: 100%; background: {color_high}; border-radius: 3px;"></div>
         </div>
         <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 8px; text-align: right;">
                 {t['rank_approx']} {format_compact_localized(rank, lang_key)}
@@ -354,7 +484,7 @@ def render_metric_card(t, amount, currency, percentile, rank, color, lang_key):
 
 # -------------------------- 5. 主程序入口 --------------------------
 def main():
-    # 1. 主内容区域容器
+    # 1. 主内容区域容器（核心：所有内容都在这个容器内）
     st.markdown('<div class="main-content">', unsafe_allow_html=True)
     
     # --- 头部区域 ---
@@ -415,7 +545,8 @@ def main():
 """
         with st.container(border=True):
             st.markdown(html_header, unsafe_allow_html=True)
-            render_metric_card(text, income, country["currency"], inc_pct, inc_rank, "#3b82f6", lang)
+            # 收入矩阵：主色 #3b82f6，对比色 #93c5fd
+            render_metric_card(text, income, country["currency"], inc_pct, inc_rank, "#3b82f6", "#93c5fd", lang)
             st.markdown("</div>", unsafe_allow_html=True)
 
     with r2: 
@@ -427,7 +558,8 @@ def main():
 """
         with st.container(border=True):
             st.markdown(html_header_w, unsafe_allow_html=True)
-            render_metric_card(text, wealth, country["currency"], wlh_pct, wlh_rank, "#6366f1", lang)
+            # 资产矩阵：主色 #6366f1，对比色 #a5b4fc
+            render_metric_card(text, wealth, country["currency"], wlh_pct, wlh_rank, "#6366f1", "#a5b4fc", lang)
             st.markdown("</div>", unsafe_allow_html=True)
     
     # --- 底部统计与声明 ---
