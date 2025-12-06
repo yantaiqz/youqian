@@ -390,8 +390,6 @@ def render_wealth_pyramid(percentile, color_high, color_low, text, lang_key):
     fig.patch.set_alpha(0)
     ax.patch.set_alpha(0)
     
-.
-
     # 绘制金字塔每层
     layer_height = 1 / pyramid_layers  # 每层高度
     # 关键修复：迭代 layer_cell_counts 的实际长度
