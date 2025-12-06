@@ -546,7 +546,7 @@ def main():
         with st.container(border=True):
             st.markdown(html_header, unsafe_allow_html=True)
             # 收入矩阵：主色 #3b82f6，对比色 #93c5fd
-            render_metric_card(text, income, country["currency"], inc_pct, inc_rank, "#3b82f6", "#93c5fd", lang)
+            render_metric_card(text, income, country["currency"], inc_pct, inc_rank, "#93c5fd", "#3b82f6", lang)
             st.markdown("</div>", unsafe_allow_html=True)
 
     with r2: 
@@ -559,7 +559,7 @@ def main():
         with st.container(border=True):
             st.markdown(html_header_w, unsafe_allow_html=True)
             # 资产矩阵：主色 #6366f1，对比色 #a5b4fc
-            render_metric_card(text, wealth, country["currency"], wlh_pct, wlh_rank, "#6366f1", "#a5b4fc", lang)
+            render_metric_card(text, wealth, country["currency"], wlh_pct, wlh_rank,  "#a5b4fc","#6366f1", lang)
             st.markdown("</div>", unsafe_allow_html=True)
     
     # --- 底部统计与声明 ---
