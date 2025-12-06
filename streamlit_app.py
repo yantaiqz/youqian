@@ -7,6 +7,57 @@ import json
 import datetime
 import os  
 
+# -------------------------- 免费代码配置 --------------------------
+FREE_ACCESS_CODE = "FREE24H" # 预设的免费代码
+ACCESS_DURATION_HOURS = 24
+
+def check_free_access():
+    """检查用户是否输入了免费代码，并判断权限是否在有效期内。"""
+    
+    # 1. 如果会话中没有权限信息，或者权限已过期，则视为无权限
+    if "access_granted_time" not in st.session_state:
+        st.session_state.access_granted = False
+        return False
+        
+    granted_time = st.session_state.access_granted_time
+    # 检查权限是否过期
+    if datetime.datetime.now() > granted_time + datetime.timedelta(hours=ACCESS_DURATION_HOURS):
+        st.session_state.access_granted = False
+        # 也可以在这里清除已过期的记录: del st.session_state.access_granted_time
+        return False
+        
+    # 2. 权限仍在有效期内
+    st.session_state.access_granted = True
+    return True
+
+# -------------------------- 免费访问控制 UI --------------------------
+
+# 检查当前状态
+if not check_free_access():
+    st.info("💡 这是一个付费内容展示页，您可以输入特定代码获得24小时免费访问权限。")
+    
+    # 使用一个 form 来处理输入和按钮，避免 Streamlit 页面因每次输入而重新运行
+    with st.form("access_form"):
+        code_input = st.text_input("输入24小时免费代码:", key="code_input_key")
+        submit_button = st.form_submit_button("验证代码")
+        
+        if submit_button:
+            if code_input == FREE_ACCESS_CODE:
+                st.session_state.access_granted_time = datetime.datetime.now()
+                st.session_state.access_granted = True
+                st.success("✅ 验证成功！您已获得24小时免费浏览权限。页面即将刷新...")
+                # 强制重新运行以立即显示内容
+                st.rerun()
+            else:
+                st.error("❌ 代码错误，请检查输入。")
+    
+    # 如果此时仍然没有权限，则隐藏主要内容
+    if not st.session_state.access_granted:
+        # 隐藏后续内容并停止脚本执行
+        st.warning("🔒 请输入代码以继续浏览。")
+        st.stop() # 停止运行脚本的其余部分
+        
+
 # -------------------------- 0. 全局配置 (必须置顶) --------------------------
 st.set_page_config(
     page_title="WealthRank 财富排行榜",
