@@ -346,7 +346,7 @@ def format_compact_localized(num, lang_key):
 
 def render_wealth_matrix(percentile, color_high, color_low, text, lang_key):
     """
-    渲染双色人群矩阵图 - 修正颜色反转问题
+    渲染双色人群矩阵图
     :param percentile: 用户的百分位（0-1）
     :param color_high: 高段位颜色（用户所在区间）
     :param color_low: 低段位颜色（其他人群）
@@ -393,12 +393,12 @@ def render_wealth_matrix(percentile, color_high, color_low, text, lang_key):
             x = j * cell_width
             y = i * cell_height
             
-            # 【核心修正】交换高/低段位的颜色赋值
+            # 选择单元格颜色
             if matrix[i, j] == 1:
-                cell_color = color_low  # 高段位用低段位颜色
+                cell_color = color_high
                 alpha = 0.8
             else:
-                cell_color = color_high  # 低段位用高段位颜色
+                cell_color = color_low
                 alpha = 0.2
             
             # 绘制矩形
@@ -414,7 +414,6 @@ def render_wealth_matrix(percentile, color_high, color_low, text, lang_key):
     marker_x = (high_pos[1] + 0.5) * cell_width
     marker_y = (high_pos[0] + 0.5) * cell_height
     
-    # 【修正】标记颜色改为原高段位颜色（保持标记醒目）
     ax.scatter(
         marker_x, marker_y, 
         color=color_high, s=100, 
@@ -438,15 +437,15 @@ def render_wealth_matrix(percentile, color_high, color_low, text, lang_key):
     st.pyplot(fig, use_container_width=True, transparent=True)
     plt.close(fig)
     
-    # 【修正】交换图例颜色显示
+    # 显示图例
     legend_html = f"""
     <div class="matrix-legend">
         <div class="legend-item">
-            <div class="legend-color" style="background-color: {color_low};"></div>
+            <div class="legend-color" style="background-color: {color_high};"></div>
             <span>{text['matrix_legend_high'].format(top_percent)}</span>
         </div>
         <div class="legend-item">
-            <div class="legend-color" style="background-color: {color_high};"></div>
+            <div class="legend-color" style="background-color: {color_low};"></div>
             <span>{text['matrix_legend_low']}</span>
         </div>
     </div>
