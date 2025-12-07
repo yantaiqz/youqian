@@ -6,9 +6,7 @@ import matplotlib.patches as patches
 import json
 import datetime
 import os  
-import streamlit as st
-import datetime
-import time # 保持导入，以备将来使用
+import time 
 
 # --- 权限配置 ---
 FREE_PERIOD_SECONDS = 60      # 免费试用期 60 秒
