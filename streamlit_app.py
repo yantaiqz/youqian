@@ -522,7 +522,7 @@ def main():
     st.markdown('<div class="main-content">', unsafe_allow_html=True)
     
     # --- 头部区域 ---
-    h_col, l_col , col_more= st.columns([7, 1, 2])
+    h_col, l_col , col_more= st.columns([6, 1, 1])
     with l_col:
         st.markdown("<div style='height: 10px'></div>", unsafe_allow_html=True)
         lang = st.selectbox("Language", ["中文", "English"], label_visibility="collapsed")
