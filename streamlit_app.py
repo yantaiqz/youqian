@@ -528,6 +528,8 @@ def main():
         lang = st.selectbox("Language", ["中文", "English"], label_visibility="collapsed")
 
     with col_more:
+        st.markdown("<div style='height: 10px'></div>", unsafe_allow_html=True)
+        
         # 修复：改用 HTML 链接按钮（替代 webbrowser 方式，兼容 Streamlit 云环境）
         st.markdown(
             f"""
