@@ -13,7 +13,7 @@ import time
 st.set_page_config(
     page_title="WealthRank 财富排行榜",
     page_icon="💎",
-    layout="wide",  # 保持wide，但通过CSS限制内容宽度
+    layout="wide",
     initial_sidebar_state="collapsed"
 )
 
@@ -24,53 +24,53 @@ st.markdown("""
         display: none !important;
     }
     
-    /* 2. 全局样式重置 - 关键：给最外层加基础留白 */
+    /* 2. 全局样式重置 - 极致紧凑 */
     .stApp {
         background-color: #f8fafc !important;
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-        padding-bottom: 80px !important;
-        padding-left: 1rem !important;  /* 全局左留白 */
-        padding-right: 1rem !important; /* 全局右留白 */
+        padding-bottom: 60px !important; /* 仅保留底部导航高度 */
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
         margin: 0 !important;
     }
     
-    /* 3. 底部导航核心样式 - 纯文字现代风 */
+    /* 3. 底部导航核心样式 - 更紧凑 */
     .bottom-nav {
         position: fixed !important;
         bottom: 0 !important;
         left: 0 !important;
         width: 100% !important;
-        height: 60px !important;
+        height: 50px !important; /* 降低导航栏高度 */
         background-color: rgba(255, 255, 255, 0.90) !important;
         backdrop-filter: blur(16px) !important;
         border-top: 1px solid rgba(226, 232, 240, 0.8) !important;
         display: flex !important;
         align-items: center !important;
         justify-content: space-between !important;
-        padding: 0 10px !important;
-        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.03) !important;
+        padding: 0 5px !important; /* 更少内边距 */
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.02) !important;
         z-index: 9999 !important;
         box-sizing: border-box !important;
     }
     
-    /* 4. 导航项样式 */
+    /* 4. 导航项样式 - 极致紧凑 */
     .nav-item {
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
         width: 100% !important;
-        height: 40px !important;
+        height: 36px !important; /* 降低高度 */
         color: #94a3b8 !important;
         text-decoration: none !important;
-        font-size: 0.70rem !important; /* 缩小适配8个项 */
+        font-size: 0.65rem !important; /* 更小字体 */
         font-weight: 600 !important;
-        letter-spacing: -0.01em !important;
-        border-radius: 8px !important;
+        letter-spacing: -0.02em !important;
+        border-radius: 6px !important;
         transition: all 0.2s ease !important;
-        margin: 0 2px !important;
-        white-space: nowrap !important; /* 禁止换行 */
-        overflow: hidden !important; /* 超出隐藏 */
-        text-overflow: ellipsis !important; /* 超长显示省略号 */
+        margin: 0 1px !important; /* 最小间距 */
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
     }
     
     .nav-item:hover {
@@ -88,81 +88,87 @@ st.markdown("""
     }
 
     /* --------------------------------------------------- */
-    /* 核心：主内容容器 - 强制居中 + 限制宽度 + 留白 */
+    /* 核心：主内容容器 - 极致紧凑 */
     /* --------------------------------------------------- */
     .main-content {
-        max-width: 900px !important; /* 内容最大宽度（可调整：800/1000px） */
-        margin: 0 auto !important;     /* 左右自动居中 */
-        padding: 2rem 1.5rem 1rem 1.5rem !important; /* 内部留白 */
-        box-sizing: border-box !important; /* 内边距计入宽度 */
-        width: 100% !important; /* 确保容器占满可用宽度 */
+        max-width: 850px !important; /* 更小最大宽度 */
+        margin: 0 auto !important;
+        padding: 1rem 0.8rem 0.5rem 0.8rem !important; /* 大幅减少内边距 */
+        box-sizing: border-box !important;
+        width: 100% !important;
     }
 
-    /* 标题样式 */
+    /* 标题样式 - 紧凑化 */
     .page-title {
-        font-size: 2rem !important;
+        font-size: 1.6rem !important; /* 更小标题 */
         font-weight: 800 !important;
         color: #1e293b !important;
         letter-spacing: -0.02em !important;
-        margin-bottom: 0.5rem !important;
+        margin-bottom: 0.2rem !important; /* 极少间距 */
+        line-height: 1.2 !important;
     }
     .page-subtitle {
         color: #64748b !important;
-        font-size: 1rem !important;
-        margin-bottom: 2rem !important;
+        font-size: 0.9rem !important;
+        margin-bottom: 1rem !important; /* 减少间距 */
         font-weight: 400 !important;
+        line-height: 1.3 !important;
     }
 
-    /* 修复卡片样式 - 适配居中容器 */
+    /* 修复卡片样式 - 极致紧凑 */
     [data-testid="stVerticalBlockBorderWrapper"] {
         background-color: #ffffff !important;
-        border-radius: 16px !important;
-        padding: 24px !important;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02) !important;
+        border-radius: 12px !important; /* 更小圆角 */
+        padding: 16px !important; /* 减少内边距 */
+        box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.01), 0 1px 2px -1px rgba(0, 0, 0, 0.01) !important;
         border: 1px solid #f1f5f9 !important;
-        width: 100% !important; /* 强制卡片宽度适配容器 */
+        width: 100% !important;
         box-sizing: border-box !important;
+        margin-bottom: 0.8rem !important; /* 减少底部间距 */
     }
     [data-testid="stVerticalBlockBorderWrapper"] > div {
         padding: 0 !important;
     }
     
-    /* 结果指标卡片 - 适配居中布局 */
+    /* 结果指标卡片 - 极致紧凑 */
     .metric-card {
         background: white !important; 
         border: 1px solid #eef2f7 !important; 
-        border-radius: 16px !important; 
-        padding: 16px !important; 
+        border-radius: 12px !important; 
+        padding: 12px !important; /* 减少内边距 */
         text-align: center !important;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.03), 0 4px 6px -2px rgba(0, 0, 0, 0.02) !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01) !important;
         box-sizing: border-box !important;
-        width: 100% !important; /* 适配容器宽度 */
+        width: 100% !important;
         transition: transform 0.2s ease !important;
-        height: auto !important; /* 取消固定高度，自适应内容 */
+        height: auto !important;
+        margin-bottom: 0 !important;
     }
     .metric-card:hover {
         transform: translateY(-2px) !important;
     }
 
-    /* 按钮样式 - 适配居中容器 */
+    /* 按钮样式 - 紧凑化 */
     div.stButton > button {
         background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
         color: white !important; 
-        border-radius: 10px !important; 
-        padding: 0.7rem 1.5rem !important;
+        border-radius: 8px !important; 
+        padding: 0.6rem 1.2rem !important; /* 减少内边距 */
         font-weight: 600 !important;
         border: none !important;
         width: 100% !important;
-        box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2) !important;
+        box-shadow: 0 2px 4px -1px rgba(37, 99, 235, 0.2) !important;
         transition: all 0.2s !important;
         box-sizing: border-box !important;
+        font-size: 0.9rem !important;
+        height: auto !important;
     }
     div.stButton > button:hover {
-        box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3) !important;
+        box-shadow: 0 6px 10px -3px rgba(37, 99, 235, 0.3) !important;
         transform: translateY(-1px) !important;
     }
     
-    /* 输入框样式 - 适配居中布局 */
+    /* 输入框样式 - 紧凑化 */
     .stSelectbox, .stNumberInput {
         width: 100% !important;
         box-sizing: border-box !important;
@@ -170,34 +176,82 @@ st.markdown("""
     .stSelectbox label, .stNumberInput label {
         color: #475569 !important;
         font-weight: 500 !important;
-        font-size: 0.9rem !important;
+        font-size: 0.85rem !important; /* 更小标签 */
+        margin-bottom: 2px !important;
+    }
+    .stSelectbox div[data-baseweb="select"] {
+        height: 36px !important; /* 更矮输入框 */
+        font-size: 0.85rem !important;
+    }
+    .stNumberInput div[data-baseweb="input"] {
+        height: 36px !important; /* 更矮输入框 */
+        font-size: 0.85rem !important;
     }
 
-    /* 修复列布局溢出问题 */
+    /* 修复列布局溢出问题 - 更紧凑 */
     [data-testid="stHorizontalBlock"] {
         width: 100% !important;
         box-sizing: border-box !important;
-        gap: 1rem !important; /* 列之间的间距 */
+        gap: 0.6rem !important; /* 更小列间距 */
     }
 
-    /* 人群矩阵样式 */
+    /* 人群矩阵样式 - 紧凑化 */
     .matrix-legend {
         display: flex;
         justify-content: center;
-        gap: 20px;
-        margin-top: 10px;
-        font-size: 0.75rem;
+        gap: 15px;
+        margin-top: 8px;
+        font-size: 0.7rem;
         color: #64748b;
     }
     .legend-item {
         display: flex;
         align-items: center;
-        gap: 5px;
+        gap: 4px;
     }
     .legend-color {
-        width: 12px;
-        height: 12px;
-        border-radius: 3px;
+        width: 10px;
+        height: 10px;
+        border-radius: 2px;
+    }
+    
+    /* 右上角按钮样式 - 更紧凑 */
+    .neal-btn {
+        font-family: 'Inter', sans-serif;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        color: #111;
+        font-weight: 600;
+        font-size: 12px !important; /* 更小字体 */
+        padding: 6px 10px !important; /* 更少内边距 */
+        border-radius: 6px !important;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
+        text-decoration: none !important;
+        width: 100%;
+        height: 34px !important; /* 更矮高度 */
+    }
+    .neal-btn:hover {
+        background: #f9fafb;
+        border-color: #111;
+        transform: translateY(-1px);
+    }
+    .neal-btn-link { 
+        text-decoration: none; 
+        width: 100%; 
+        display: block; 
+    }
+    
+    /* 自定义间距控制 */
+    .spacer-xs {
+        height: 8px !important;
+    }
+    .spacer-sm {
+        height: 10px !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -288,7 +342,7 @@ TRANSLATIONS = {
         "btn_calc": "Update Analysis", "card_income": "Income Level", "card_wealth": "Wealth Status", 
         "rank_prefix": "Top", "rank_approx": "Rank #", 
         "disclaimer": "Estimations based on Log-Normal Distribution Model", 
-        "nav_1": "Wealth Rank",  # 简化文字适配显示
+        "nav_1": "Wealth Rank",
         "nav_2": "Global Real Estate",  
         "nav_3": "Urban Housing",  
         "nav_4": "Global Legal",  
@@ -347,22 +401,15 @@ def format_compact_localized(num, lang_key):
         return f"{num:,.0f}"
 
 def render_wealth_matrix(percentile, color_high, color_low,text, lang_key):
-    """
-    渲染双色人群矩阵图
-    :param percentile: 用户的百分位（0-1）
-    :param color_high: 高段位颜色（用户所在区间）
-    :param color_low: 低段位颜色（其他人群）
-    :param text: 翻译文本
-    :param lang_key: 语言标识
-    """
-    # 矩阵大小（20x10的网格，共200个单元格）
-    matrix_size = (10, 20)
+    """渲染双色人群矩阵图 - 更紧凑"""
+    # 矩阵大小（更紧凑的网格）
+    matrix_size = (8, 16)  # 更小的矩阵
     total_cells = matrix_size[0] * matrix_size[1]
     
     # 计算用户所在的高段位单元格数量
     top_percent = (1 - percentile) * 100
     high_cells = int(round(total_cells * (1 - percentile)))
-    high_cells = max(1, min(high_cells, total_cells))  # 确保至少1个单元格
+    high_cells = max(1, min(high_cells, total_cells))
     low_cells = total_cells - high_cells
     
     # 创建矩阵数据
@@ -372,17 +419,17 @@ def render_wealth_matrix(percentile, color_high, color_low,text, lang_key):
         row_data = []
         for col in range(matrix_size[1]):
             if cell_count < high_cells:
-                row_data.append(1)  # 高段位
+                row_data.append(1)
             else:
-                row_data.append(0)  # 低段位
+                row_data.append(0)
             cell_count += 1
         matrix.append(row_data)
     
-    # 反转矩阵，让高段位显示在右上角
+    # 反转矩阵
     matrix = np.array(matrix)[::-1, ::-1]
     
-    # 创建图表
-    fig, ax = plt.subplots(figsize=(8, 4))
+    # 创建图表（更小尺寸）
+    fig, ax = plt.subplots(figsize=(7, 3.5))  # 更小图表
     fig.patch.set_alpha(0)
     ax.patch.set_alpha(0)
     
@@ -395,7 +442,6 @@ def render_wealth_matrix(percentile, color_high, color_low,text, lang_key):
             x = j * cell_width
             y = i * cell_height
             
-            # 选择单元格颜色
             if matrix[i, j] == 1:
                 cell_color = color_high
                 alpha = 0.8
@@ -403,29 +449,28 @@ def render_wealth_matrix(percentile, color_high, color_low,text, lang_key):
                 cell_color = color_low
                 alpha = 0.2
             
-            # 绘制矩形
             rect = patches.Rectangle(
                 (x, y), cell_width, cell_height,
-                linewidth=0.5, edgecolor='#f1f5f9',
+                linewidth=0.3, edgecolor='#f1f5f9',  # 更细边框
                 facecolor=cell_color, alpha=alpha
             )
             ax.add_patch(rect)
     
-    # 添加用户位置标记（在第一个高段位单元格中心）
+    # 添加用户位置标记
     high_pos = np.argwhere(matrix == 1)[0]
     marker_x = (high_pos[1] + 0.5) * cell_width
     marker_y = (high_pos[0] + 0.5) * cell_height
     
     ax.scatter(
         marker_x, marker_y, 
-        color=color_high, s=100, 
-        edgecolor='white', linewidth=2, 
+        color=color_high, s=80,  # 更小标记
+        edgecolor='white', linewidth=1.5, 
         zorder=10, alpha=1
     )
     ax.text(
         marker_x, marker_y, '●', 
         ha='center', va='center', 
-        color='white', fontsize=8, 
+        color='white', fontsize=7, 
         zorder=11
     )
     
@@ -461,21 +506,21 @@ def render_metric_card(t, amount, currency, percentile, rank, color_high, color_
     # 渲染人群矩阵
     render_wealth_matrix(percentile, color_high, color_low, t, lang_key)
 
-    # 渲染数值信息
+    # 渲染数值信息（更紧凑）
     html = f"""
-<div style="margin-top: 15px; padding: 0 10px;">
-    <div style="font-size: 2rem; font-weight: 700; color: #0f172a; line-height: 1.1; margin-bottom: 12px;">
-        <span style="font-size: 1.2rem; color: #64748b; font-weight: 600; margin-right: 4px;">{currency}</span>{format_compact_localized(amount, lang_key)}
+<div style="margin-top: 10px; padding: 0 5px;">
+    <div style="font-size: 1.6rem; font-weight: 700; color: #0f172a; line-height: 1.1; margin-bottom: 8px;">
+        <span style="font-size: 1rem; color: #64748b; font-weight: 600; margin-right: 3px;">{currency}</span>{format_compact_localized(amount, lang_key)}
     </div>
-    <div style="background-color: #f8fafc; border-radius: 8px; padding: 12px; margin-top: 10px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-            <span style="font-size: 0.85rem; color: #64748b;">排名百分比</span>
-            <span style="color: {color_high}; font-weight: 700; font-size: 1.1rem;">{rank_str}</span>
+    <div style="background-color: #f8fafc; border-radius: 6px; padding: 8px; margin-top: 6px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+            <span style="font-size: 0.8rem; color: #64748b;">排名百分比</span>
+            <span style="color: {color_high}; font-weight: 700; font-size: 1rem;">{rank_str}</span>
         </div>
-        <div style="width: 100%; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
-            <div style="width: {(percentile * 100)}%; height: 100%; background: {color_high}; border-radius: 3px;"></div>
+        <div style="width: 100%; height: 5px; background: #e2e8f0; border-radius: 2px; overflow: hidden;">
+            <div style="width: {(percentile * 100)}%; height: 100%; background: {color_high}; border-radius: 2px;"></div>
         </div>
-        <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 8px; text-align: right;">
+        <div style="font-size: 0.7rem; color: #94a3b8; margin-top: 6px; text-align: right;">
                 {t['rank_approx']} {format_compact_localized(rank, lang_key)}
         </div>
     </div>
@@ -483,54 +528,20 @@ def render_metric_card(t, amount, currency, percentile, rank, color_high, color_
 """
     st.markdown(html, unsafe_allow_html=True)
 
-# -------------------------- 右上角功能区 --------------------------
-
-st.markdown("""
-<style>
-    /* 2. HTML 链接按钮 (Get New Apps) */
-    .neal-btn {
-        font-family: 'Inter', sans-serif;
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        color: #111;
-        font-weight: 600;
-        font-size: 14px;
-        padding: 8px 16px;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.2s;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        white-space: nowrap;
-        text-decoration: none !important;
-        width: 100%;
-        height: 38px; /* 强制与 st.button 高度对齐 */
-    }
-    .neal-btn:hover {
-        background: #f9fafb;
-        border-color: #111;
-        transform: translateY(-1px);
-    }
-    .neal-btn-link { text-decoration: none; width: 100%; display: block; }
-</style>
-""", unsafe_allow_html=True)
-
 # -------------------------- 5. 主程序入口 --------------------------
 def main():
-    # 1. 主内容区域容器（核心：所有内容都在这个容器内）
+    # 1. 主内容区域容器
     st.markdown('<div class="main-content">', unsafe_allow_html=True)
     
-    # --- 头部区域 ---
-    h_col, l_col , col_more= st.columns([6, 1, 1])
+    # --- 头部区域（更紧凑）---
+    h_col, l_col , col_more= st.columns([5, 1, 1.2])  # 调整列比例
     with l_col:
-        st.markdown("<div style='height: 10px'></div>", unsafe_allow_html=True)
+        st.markdown("<div class='spacer-xs'></div>", unsafe_allow_html=True)
         lang = st.selectbox("Language", ["中文", "English"], label_visibility="collapsed")
 
     with col_more:
-        st.markdown("<div style='height: 10px'></div>", unsafe_allow_html=True)
-        
-        # 修复：改用 HTML 链接按钮（替代 webbrowser 方式，兼容 Streamlit 云环境）
+        st.markdown("<div class='spacer-xs'></div>", unsafe_allow_html=True)
+        # 右上角按钮
         st.markdown(
             f"""
             <a href="https://haowan.streamlit.app/" target="_blank" class="neal-btn-link">
@@ -540,17 +551,15 @@ def main():
             unsafe_allow_html=True
         )
 
-
-    
     text = TRANSLATIONS[lang]
     
     with h_col:
         st.markdown(f"<div class='page-title'>{text['title']}</div>", unsafe_allow_html=True)
         st.markdown(f"<div class='page-subtitle'>{text['subtitle']}</div>", unsafe_allow_html=True)
     
-    # --- 第一部分：输入区域 ---
+    # --- 第一部分：输入区域（极致紧凑）---
     st.markdown(
-        f"<div style='font-weight:600; color:#334155; margin-bottom:12px; font-size:0.95rem;'>1. {text['section_input']}</div>",
+        f"<div style='font-weight:600; color:#334155; margin-bottom:8px; font-size:0.9rem;'>1. {text['section_input']}</div>",
         unsafe_allow_html=True
     )
 
@@ -560,60 +569,68 @@ def main():
             country_code = st.selectbox(
                 text['location'], 
                 options=COUNTRY_DATA.keys(), 
-                format_func=lambda x: COUNTRY_DATA[x]["name_zh"] if lang == "中文" else COUNTRY_DATA[x]["name_en"]
+                format_func=lambda x: COUNTRY_DATA[x]["name_zh"] if lang == "中文" else COUNTRY_DATA[x]["name_en"],
+                label_visibility="collapsed"
             )
             country = COUNTRY_DATA[country_code]
         with c2:
-            income = st.number_input(text['income'], value=int(country["medianIncome"]*1.5), step=1000)
+            income = st.number_input(
+                text['income'], 
+                value=int(country["medianIncome"]*1.5), 
+                step=1000,
+                label_visibility="collapsed"
+            )
         with c3:
-            wealth = st.number_input(text['wealth'], value=int(country["medianWealth"]*1.5), step=5000)
+            wealth = st.number_input(
+                text['wealth'], 
+                value=int(country["medianWealth"]*1.5), 
+                step=5000,
+                label_visibility="collapsed"
+            )
             
-    
-    # 按钮
-    st.markdown("<div style='height: 15px;'>", unsafe_allow_html=True)
+    # 按钮（极小间距）
+    st.markdown("<div class='spacer-xs'></div>", unsafe_allow_html=True)
     st.button(text['btn_calc'], type="primary")
-    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown("<div class='spacer-xs'></div>", unsafe_allow_html=True)
     
-    # --- 第二部分：结果渲染区域 ---
+    # --- 第二部分：结果渲染区域（更紧凑）---
     inc_pct = get_log_normal_percentile(income, country["medianIncome"], country["incomeGini"])
     wlh_pct = get_log_normal_percentile(wealth, country["medianWealth"], country["wealthGini"])
     inc_rank = max(1, math.floor(country["population"] * (1 - inc_pct)))
     wlh_rank = max(1, math.floor(country["population"] * (1 - wlh_pct)))
     
-    st.markdown(f"<div style='font-weight:600; color:#334155; margin-bottom:12px; margin-top: 10px; font-size:0.95rem;'>2. {text['section_result']}</div>", unsafe_allow_html=True)
+    st.markdown(f"<div style='font-weight:600; color:#334155; margin-bottom:8px; margin-top: 5px; font-size:0.9rem;'>2. {text['section_result']}</div>", unsafe_allow_html=True)
     
     # 两列展示结果卡片
     r1, r2 = st.columns(2)
     
     with r1: 
         html_header = f"""
-<div class="metric-card" style="border-top: 4px solid #3b82f6 !important;">
-    <div style="color: #64748b; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 15px;">
+<div class="metric-card" style="border-top: 3px solid #3b82f6 !important;">
+    <div style="color: #64748b; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px;">
         {text['card_income']}
     </div>
 """
         with st.container(border=True):
             st.markdown(html_header, unsafe_allow_html=True)
-            # 收入矩阵：主色 #3b82f6，对比色 #93c5fd
             render_metric_card(text, income, country["currency"], inc_pct, inc_rank, "#3b82f6", "#93c5fd", lang)
             st.markdown("</div>", unsafe_allow_html=True)
 
     with r2: 
         html_header_w = f"""
-<div class="metric-card" style="border-top: 4px solid #6366f1 !important;">
-    <div style="color: #64748b; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 15px;">
+<div class="metric-card" style="border-top: 3px solid #6366f1 !important;">
+    <div style="color: #64748b; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px;">
         {text['card_wealth']}
     </div>
 """
         with st.container(border=True):
             st.markdown(html_header_w, unsafe_allow_html=True)
-            # 资产矩阵：主色 #6366f1，对比色 #a5b4fc
             render_metric_card(text, wealth, country["currency"], wlh_pct, wlh_rank,  "#6366f1","#a5b4fc", lang)
             st.markdown("</div>", unsafe_allow_html=True)
     
-    # --- 底部统计与声明 ---
+    # --- 底部统计与声明（极致紧凑）---
     st.markdown(f"""
-    <div style='text-align:center; color:#94a3b8; font-size:0.75rem; margin-top:40px; line-height: 1.5;'>
+    <div style='text-align:center; color:#94a3b8; font-size:0.7rem; margin-top:20px; line-height: 1.4;'>
         {text['disclaimer']}<br>
         <span style="opacity: 0.7">{visit_text}</span>
     </div>
